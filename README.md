@@ -60,15 +60,16 @@ To run your first match, follow the next steps:
 
    Run:
     
-    ```
+    
     make all
-    ```
+    
 
    to build the game and all the players. Note that Makefile identifies any file matching AI*.cc as a player.
    This creates an executable file called Game. This executable allows you to run a match using a command like:
-    ```
+   
+    
     ./Game Demo Demo Demo Demo -s 30 -i default.cnf -o default.out
-    ```
+    
 
    In this case, this runs a match with random seed 30 where four instances of the player “Demo” play with the parameters defined in default.cnf (the default parameters). The output of this match is redirected to the file default.out.
    
