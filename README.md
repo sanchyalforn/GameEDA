@@ -1,3 +1,6 @@
+### EDA Game: ApocalypseNow.
+
+
 ## Game rules
 
 · Four players, each of them controlled by a program, play on a square board with 60× 60 cells. The goal in the game is to conquer the maximum number of control points (henceforth called posts for the sake of brevity). There are 16 such posts distributed on the board.
