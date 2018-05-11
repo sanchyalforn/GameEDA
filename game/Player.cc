@@ -1,4 +1,4 @@
-//////// STUDENTS DO NOT NEED TO READ BELOW THIS LINE ////////  
+//////// STUDENTS DO NOT NEED TO READ BELOW THIS LINE ////////
 
 #include "Player.hh"
 

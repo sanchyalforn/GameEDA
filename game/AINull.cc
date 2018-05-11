@@ -26,6 +26,7 @@ struct PLAYER_NAME : public Player {
    * Play method, invoked once per each round.
    */
   virtual void play () {
+
   }
 
 };
