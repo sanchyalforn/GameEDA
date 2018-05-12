@@ -1,11 +1,12 @@
 #include "Player.hh"
 
 
+
 /**
 * Write the name of your player and save this file
 * with the same name and .cc extension.
 */
-#define PLAYER_NAME Null
+#define PLAYER_NAME Maincra
 
 
 struct PLAYER_NAME : public Player {
@@ -20,6 +21,11 @@ struct PLAYER_NAME : public Player {
         return new PLAYER_NAME;
     }
 
+    using VE = vector <int>;
+    using VVE = vector <VE>;
+    using MEE = map <int,int>;
+    using MI = map<int,int>::iterator;
+
 
     //Funcio per escollir on tirar el napalm;
     void Napalm() {}
@@ -30,9 +36,11 @@ struct PLAYER_NAME : public Player {
     //Funcio per guiar els soldatss
     void soldiers() {}
 
-    //Funcio per saber si atacar o no dins un radi d'alcance i sabent el tipus de terreny
+    //Funcio per saber si atacar o no a un soldat
 
-    bool atack_or_not(int radius, <T> terreny) {}
+    bool atack_or_not() {
+
+    }
 
     /**
     * Play method, invoked once per each round.
