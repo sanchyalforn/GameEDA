@@ -32,6 +32,7 @@ struct PLAYER_NAME : public Player {
     VE vhelicopters;
     VE vparachuters;
     VE vposts;
+    VE post_no_capturats;
 
 
     //Funcio per escollir on tirar el napalm;
