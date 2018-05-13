@@ -1,5 +1,6 @@
 #include "Player.hh"
 #include <cmath>
+#include <stack>
 
 
 
@@ -23,44 +24,28 @@ struct PLAYER_NAME : public Player {
 
     using VE = vector <int>;
     using VVE = vector <VE>;
-    using MEE = map <int,int>;
-    using MI = map<int,int>::iterator;
+    using VP = vector <Post>;
+    using S = stack<int>;
     const int my_id = me();
     using P = pair <int,int>;
+    int num_soldiers = 20;
+    int num_parachuters = 0;
 
-    VE v_soldiers;
-    VE vhelicopters;
-    VE vparachuters;
-    VE vposts;
-    VE post_no_capturats;
+    VE v_soldiers (20);
+    VE v_helicopters (2);
+    VE v_parachuters (0);
+    VP post_no_capturats (16);
+    VP v_posts (16);
+    S s;
 
-
-    //Funcio per escollir on tirar el napalm;
-    void Napalm() {}
-
-    //Funcio per escollir on tirar els parachuters;
-    void Parachuters() {}
-
-    //Funcio per guiar els soldatss
-    void soldiers() {}
-
-    /*Funcio per saber si atacar o no a un soldat
-
-    bool atack_or_not() {
-
-    }*/
-
-    /*Decidir si un soldat va a una pos o no
-    */
-    bool go (P p1, P p2) {
-        if (fire_time(p2.first,p2.second) == 0) return true;
-        return distance(p1,p2) >= fire_time(p.first,p.second);
+    bool fora_limits(P p) {
+        return not (p.first >= 0 and p.first < MAX and p.second < MAX and p.second >= 0);
     }
 
-    int distance (P p1, P p2) {
-        int sum1 = (p2.first - p1.first)*(p2.first - p1.first) ;
-        int sum2 = (p2.second - p1.second)*(p2.second - p1.second);
-        return sqrt(sum1+sum2);
+
+    void Dijkstra(int x, int y) {
+        if (fora_limits({x,y}) or fire_time(x,y) > 0 or what(i,j) == 4) return;
+
     }
 
     /**
@@ -69,9 +54,9 @@ struct PLAYER_NAME : public Player {
     virtual void play () {
         vsoldiers = soldiers(my_id);
         vhelicopters = helicopters(my_id);
-        if ( round() == 0) {
-            vposts = posts;
-        }
+        vposts = posts();
+        if (round() == 0)
+            vposts = posts();
         else {
 
         }
