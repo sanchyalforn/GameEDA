@@ -20,9 +20,10 @@ struct PLAYER_NAME : public Player {
         return new PLAYER_NAME;
     }
 
+
     using VE = vector <int>;
     using VVE = vector <VE>;
-    using P = pair <int,int>;
+
 
 
     //FOREST GRASS WATER MOUNTAIN
@@ -42,24 +43,54 @@ struct PLAYER_NAME : public Player {
     VE v_helicopters;
     vector <Post> v_posts;
 
-    /*bool napalm_QuestionMark(P pos) {
+    //EL PUNT ESTA FORA LIMITS?
+
+    bool fora_limits(int i, int j) {
+        return (i < 0 or i >= MAX or j < 0 or j >= MAX;
+    }
+
+    //QUIN POST ANAR?
+
+    Pos which_post (int id) {
+        sold_i = data(id).pos.i;
+        sold_j = data(id).pos.j;
+
+        for (int i = 0; i < MAX; ++i)
+            for (int j = 0; j < MAX; ++j) {
+                if (fora_limits(i,j))
+                    break;
+                int owner = post_owner(i,j);
+                if ((owner != NO_POST) and (owner = NOONE || owner != me())) {
+
+                }
+
+            }
+
+        return Pos(opt_i, opt_j);
+    }
+
+    //WORTH TIRAR NAPALM?
+
+    bool napalm_QuestionMark(P pos) {
         int num_enemics = 0;
         int num_meus = 0;
         bool yes_OMG = false;
         for (int i = 0; i < 5; ++i)
             for (int j = 0; j < 5; ++j) {
-                if ([pos.x - 2 + i][pos.x - 2 + j])
-                    ++ num_enemics;
-                if ([pos.x - 2 + i][pos.x - 2 + j])
-                    ++num_meus;
+                int data_soldier = which_soldier(pos.x - 2 + i,pos.x - 2 + j);
+                int data_post = post_owner(pos.x - 2 + i,pos.x - 2 + j);
+                if (data_soldier == -1)
+                    break;
+                if (data_soldier != 0) {
+                    //fer búsqueda de si és meu o no
+                }
 
             }
-        return (num_enemics >  or (num_meus < 3 and num_enemics > num_meus) or (num_enemics > 2*num_meus-1))
-    }*/
+        return ((num_meus < 3 and num_enemics > num_meus) or (num_enemics > 2*num_meus-1))
+    }
 
-    /**
-    * Play method, invoked once per each round.
-    */
+    //"MAIN"
+
     virtual void play () {
 
         if (status() > 0.95) return;
@@ -71,6 +102,7 @@ struct PLAYER_NAME : public Player {
             }
         }
     }
+
 
 };
 
