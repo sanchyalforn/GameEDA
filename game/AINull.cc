@@ -21,8 +21,10 @@ struct PLAYER_NAME : public Player {
     }
 
 
-    using VE = vector <int>;
-    using VVE = vector <VE>;
+    using VE    = vector <int>;
+    using VVE   = vector <VE>;
+    using QP    = queue <Position>;
+    using VQ    = vector <QP>;
 
 
 
@@ -42,6 +44,8 @@ struct PLAYER_NAME : public Player {
     VE v_soldiers;
     VE v_helicopters;
     vector <Post> v_posts;
+    VQ v_cues;
+    int i = 0;
 
     //EL PUNT ESTA FORA LIMITS?
 
@@ -51,7 +55,7 @@ struct PLAYER_NAME : public Player {
 
     //QUIN POST ANAR?
 
-    Pos which_post (int id) {
+    Position which_post (int id) {
         int sold_i = data(id).pos.i;
         int sold_j = data(id).pos.j;
         int aux_i = -1;
@@ -71,12 +75,12 @@ struct PLAYER_NAME : public Player {
 
             }
 
-        return Pos(opt_i, opt_j);
+        return Position (opt_i, opt_j);
     }
 
     //WORTH TIRAR NAPALM?
 
-    bool napalm_QuestionMark(P pos) {
+    bool napalm_QuestionMark(Position pos) {
         int num_enemics = 0;
         int num_meus = 0;
         bool yes_OMG = false;
@@ -94,18 +98,41 @@ struct PLAYER_NAME : public Player {
         return ((num_meus < 3 and num_enemics > num_meus) or (num_enemics > 2*num_meus-1))
     }
 
+    //Search algorithm per trobar la ruta
+
+    QP BFS(int ii, int ij, int oi, int oj) {
+        QP qp;
+
+        return qp;
+    }
+
     //"MAIN"
 
     virtual void play () {
+        //Inicialització vectors cada ronda
+        v_soldiers = soldiers(me());
+        v_helicopters = helicopters(me());
+        int sold_size = int(v_soldiers.size())
 
-        if (status() > 0.95) return;
+        //primera ronda pillar tots els posts
         if (round() == 0){
             v_posts = posts();
             int post_size = v_posts.size();
-            for (int i = 0; i < post_size; ++i) {
-
-            }
         }
+
+        //Vector cues per fer el search algorithm de cada soldat
+        vcues = VQ(sold_size);
+        for (int i = 0; i < sold_size; ++i) {
+            Position pos_obj = which_post(id);
+            Position pos_act = data(v_soldiers).pos;
+            vcues[i] = BFS(pos_act.i, pos_act.j, pos_obj.i.pos_obj.j);
+
+            //Moure el soldat a la posició que toca
+            Position next = vcues[i].front();
+            vcues[i].pop();
+            command_soldier(v_soldiers[i],next.i, next.j);
+        }
+
     }
 
 
