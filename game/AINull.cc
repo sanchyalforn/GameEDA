@@ -30,7 +30,8 @@ struct PLAYER_NAME : public Player {
 
     //FOREST GRASS WATER MOUNTAIN
 
-    /* NAPALM
+    /*
+    NAPALM AREA
 
     * * * * *
     * * * * *
@@ -103,6 +104,9 @@ struct PLAYER_NAME : public Player {
     QP BFS(int ii, int ij, int oi, int oj) {
         QP qp;
 
+        for (int u = 0; u < MAX; ++u) {
+
+        }
         return qp;
     }
 
@@ -113,6 +117,7 @@ struct PLAYER_NAME : public Player {
         v_soldiers = soldiers(me());
         v_helicopters = helicopters(me());
         int sold_size = int(v_soldiers.size())
+        visitats = VVE(MAX, VE(MAX,false));
 
         //primera ronda pillar tots els posts
         if (round() == 0){
