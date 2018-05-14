@@ -52,8 +52,10 @@ struct PLAYER_NAME : public Player {
     //QUIN POST ANAR?
 
     Pos which_post (int id) {
-        sold_i = data(id).pos.i;
-        sold_j = data(id).pos.j;
+        int sold_i = data(id).pos.i;
+        int sold_j = data(id).pos.j;
+        int aux_i = -1;
+        int aux_j = -1;
 
         for (int i = 0; i < MAX; ++i)
             for (int j = 0; j < MAX; ++j) {
@@ -61,7 +63,10 @@ struct PLAYER_NAME : public Player {
                     break;
                 int owner = post_owner(i,j);
                 if ((owner != NO_POST) and (owner = NOONE || owner != me())) {
-
+                    if (aux_i == -1 or abs(i - sold_i) + abs(j - sold_j) < (abs(sold_i - sold_i) + abs(sold_j - sold_j)) {
+                        aux_i = sold_i;
+                        aux_j = sold_j;
+                    }
                 }
 
             }
