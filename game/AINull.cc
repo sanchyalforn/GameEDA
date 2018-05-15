@@ -27,6 +27,12 @@ struct PLAYER_NAME : public Player {
     using VQ    = vector <QP>;
 
 
+    VVE visitats;
+    VE v_soldiers;
+    VE v_helicopters;
+    vector <Post> v_posts;
+    VQ v_cues;
+
 
     //FOREST GRASS WATER MOUNTAIN
 
@@ -34,6 +40,7 @@ struct PLAYER_NAME : public Player {
     //POST OWNERS
     static const int NO_POST = -2;
     static const int NOONE = -1;
+
     /*
     NAPALM AREA
 
@@ -44,13 +51,6 @@ struct PLAYER_NAME : public Player {
     * * * * *
 
     */
-
-    VVE visitats;
-    VE v_soldiers;
-    VE v_helicopters;
-    vector <Post> v_posts;
-    VQ v_cues;
-    int i = 0;
 
     //EL PUNT ESTA FORA LIMITS?
 
@@ -66,7 +66,20 @@ struct PLAYER_NAME : public Player {
 
     //CAP A ON ANAR HELICOPTER
 
-    Position where (Position &act, )
+    Position where (Position &act) {
+        Position aux (-1,-1);
+        for (int i = 0; i < MAX; ++i)
+            for (int j = 0; j < MAX; ++j) {
+                if (fora_limits(i,j))
+                    break;
+                int owner = post_owner(i,j);
+                if ((owner != NO_POST) and (owner == NOONE or owner != me())) {
+                    if (aux.i == -1)
+                        aux = Position(i,j);
+                }
+            }
+        return aux;
+    }
 
     //QUIN POST ANAR?
 
@@ -81,13 +94,13 @@ struct PLAYER_NAME : public Player {
                 if (fora_limits(i,j))
                     break;
                 int owner = post_owner(i,j);
-                if ((owner != NO_POST) and (owner = NOONE || owner != me())) {
+                if ((owner != NO_POST) and (owner == NOONE or owner != me())) {
                     if (aux.i == -1)
                         act_v = last_v = post_value(i,j);
 
-                    if (distance(sold,Position(i,j)) < distance(aux,Position(i,j))) {
+                    if (distance(sold,Position(i,j)) < distance(aux,sold)) {
                         if (last_v == act_v or act_v > last_v)
-                            aux = sold;
+                            aux = Position(i,j);
 
                         else
                             if (distance(sold,Position(i,j)) <= distance(aux,Position(i,j))*1.3)
@@ -120,7 +133,7 @@ struct PLAYER_NAME : public Player {
 
     //Search algorithm per trobar la ruta
 
-    void Dijkstra (Position act, Position obj) {
+    void BFS (Position act, Position obj) {
 
     }
 
@@ -144,13 +157,23 @@ struct PLAYER_NAME : public Player {
         for (int i = 0; i < sold_size; ++i) {
             Position pos_obj = v_posts[i].pos;
             Position pos_act = data(v_soldiers[i]).pos;
-            //vcues[i] = Dijkstra(pos_act, pos_obj);
+            //vcues[i] = BFS(pos_act, pos_obj);
 
-            //Moure el soldat a la posició que toca
+            //MOVE SOLDIER
             /*Position next = vcues[i].front();
             vcues[i].pop();
             command_soldier(v_soldiers[i],next.i, next.j);
             */
+            //Calcular POS on anar de cada helicopter
+            Position move_hel_1 = data(v_helicopters[0]).pos;
+            int orient_1 = data(v_helicopters[0]).orientation;
+            move_hel_1 = where(move_hel_1);
+            Position move_hel_2 = data(v_helicopters[1]).pos;
+            int orient_2 = data(v_helicopters[1]).orientation;
+            move_hel_2 = where(move_hel_2);
+
+            //MOVE HELICOPTER
+            //code_command_helicopter(id,code);
         }
     }
 };

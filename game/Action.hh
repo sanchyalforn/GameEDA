@@ -24,7 +24,7 @@ public:
 
 
   //////// STUDENTS DO NOT NEED TO READ BELOW THIS LINE ////////
-  
+
   // Creates an empty action.
   Action ()
   {   }
