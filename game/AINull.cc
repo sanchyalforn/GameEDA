@@ -24,7 +24,7 @@ struct PLAYER_NAME : public Player {
     using VE    = vector <int>;
     using VVE   = vector <VE>;
     using QP    = queue <Position>;
-    using VQ    = vector <QP>;
+    using VQ    = vector <pair <int,QP>>;
 
 
     VVE visitats;
@@ -97,11 +97,9 @@ struct PLAYER_NAME : public Player {
                 if ((owner != NO_POST) and (owner == NOONE or owner != me())) {
                     if (aux.i == -1)
                         act_v = last_v = post_value(i,j);
-
                     if (distance(sold,Position(i,j)) < distance(aux,sold)) {
                         if (last_v == act_v or act_v > last_v)
                             aux = Position(i,j);
-
                         else
                             if (distance(sold,Position(i,j)) <= distance(aux,Position(i,j))*1.3)
                                 aux = sold;
@@ -133,9 +131,25 @@ struct PLAYER_NAME : public Player {
 
     //Search algorithm per trobar la ruta
 
-    void BFS (Position act, Position obj) {
-
-    }
+    void bfs(const Position &i_pos, Position &f_pos, QP &qp){
+         visitats = (MAX, VE (MAX, false));
+         QP q;
+         bool trobat = 0;
+         QP.push_back(i_pos);
+         visitats[i_pos.i][i_pos.j] = true;
+         while (not q.empty() or not trobat) {
+             Position p = q.front();
+             q.pop();
+             if (what(i_pos.i-1,i_pos.j) != -1 or what(i_pos.i-1,i_pos.j) != MOUNTAIN or fire_time(i_pos.i-1,i_pos.j) == 0)
+                q.push(Position(i-1,j));
+             if (what(i_pos.i+1,i_pos.j) != -1 or what(i_pos.i+1,i_pos.j) != MOUNTAIN or fire_time(i_pos.i+1,i_pos.j) == 0)
+                q.push(Position(i+1,j));
+             if (what(i_pos.i,i_pos.j-1) != -1 or what(i_pos.i,i_pos.j-1) != MOUNTAIN or fire_time(i_pos.i,i_pos.j-1) == 0)
+                q.push(Position(i,j-1));
+             if (what(i_pos.i,i_pos.j+1) != -1 or what(i_pos.i,i_pos.j+1) != MOUNTAIN or fire_time(i_pos.i,i_pos.j+1) == 0)
+                q.push(Position(i,j+1));
+         }
+     }
 
     //"MAIN"
 
@@ -145,6 +159,7 @@ struct PLAYER_NAME : public Player {
         v_helicopters = helicopters(me());
         int sold_size = int(v_soldiers.size());
         visitats = VVE(MAX, VE(MAX,false));
+        v_cues = VQ(sold_size);
 
         //primera ronda pillar tots els posts
         if (round() == 0){
@@ -153,11 +168,11 @@ struct PLAYER_NAME : public Player {
         }
 
         //Vector cues per fer el search algorithm de cada soldat
-        //vcues = VQ(sold_size);
         for (int i = 0; i < sold_size; ++i) {
             Position pos_obj = v_posts[i].pos;
             Position pos_act = data(v_soldiers[i]).pos;
-            //vcues[i] = BFS(pos_act, pos_obj);
+            v_cues[i].first = v_soldiers[i];
+            BFS(pos_act, pos_obj,v_cues[i]);
 
             //MOVE SOLDIER
             /*Position next = vcues[i].front();
