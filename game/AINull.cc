@@ -30,6 +30,10 @@ struct PLAYER_NAME : public Player {
 
     //FOREST GRASS WATER MOUNTAIN
 
+
+    //POST OWNERS
+    static const int NO_POST = -2;
+    static const int NOONE = -1;
     /*
     NAPALM AREA
 
@@ -51,16 +55,26 @@ struct PLAYER_NAME : public Player {
     //EL PUNT ESTA FORA LIMITS?
 
     bool fora_limits(int i, int j) {
-        return (i < 0 or i >= MAX or j < 0 or j >= MAX;
+        return (i < 0 or i >= MAX or j < 0 or j >= MAX);
     }
+
+    //DISTANCIA?
+
+    int distance(const Position &in, const Position &f) {
+        return abs(f.i - in.i) + abs(f.j - in.j);
+    }
+
+    //CAP A ON ANAR HELICOPTER
+
+    Position where (Position &act, )
 
     //QUIN POST ANAR?
 
     Position which_post (int id) {
-        int sold_i = data(id).pos.i;
-        int sold_j = data(id).pos.j;
-        int aux_i = -1;
-        int aux_j = -1;
+        Position sold = data(id).pos;
+        int act_v;
+        int last_v;
+        Position aux (-1,-1);
 
         for (int i = 0; i < MAX; ++i)
             for (int j = 0; j < MAX; ++j) {
@@ -68,15 +82,20 @@ struct PLAYER_NAME : public Player {
                     break;
                 int owner = post_owner(i,j);
                 if ((owner != NO_POST) and (owner = NOONE || owner != me())) {
-                    if (aux_i == -1 or abs(i - sold_i) + abs(j - sold_j) < (abs(sold_i - sold_i) + abs(sold_j - sold_j)) {
-                        aux_i = sold_i;
-                        aux_j = sold_j;
+                    if (aux.i == -1)
+                        act_v = last_v = post_value(i,j);
+
+                    if (distance(sold,Position(i,j)) < distance(aux,Position(i,j))) {
+                        if (last_v == act_v or act_v > last_v)
+                            aux = sold;
+
+                        else
+                            if (distance(sold,Position(i,j)) <= distance(aux,Position(i,j))*1.3)
+                                aux = sold;
                     }
                 }
-
             }
-
-        return Position (opt_i, opt_j);
+        return aux;
     }
 
     //WORTH TIRAR NAPALM?
@@ -87,8 +106,8 @@ struct PLAYER_NAME : public Player {
         bool yes_OMG = false;
         for (int i = 0; i < 5; ++i)
             for (int j = 0; j < 5; ++j) {
-                int data_soldier = which_soldier(pos.x - 2 + i,pos.x - 2 + j);
-                int data_post = post_owner(pos.x - 2 + i,pos.x - 2 + j);
+                int data_soldier = which_soldier(pos.i - 2 + i,pos.i - 2 + j);
+                int data_post = post_owner(pos.i - 2 + i,pos.i - 2 + j);
                 if (data_soldier == -1)
                     break;
                 if (data_soldier != 0) {
@@ -96,18 +115,13 @@ struct PLAYER_NAME : public Player {
                 }
 
             }
-        return ((num_meus < 3 and num_enemics > num_meus) or (num_enemics > 2*num_meus-1))
+        return ((num_meus < 3 and num_enemics > num_meus) or (num_enemics > 2*num_meus-1));
     }
 
     //Search algorithm per trobar la ruta
 
-    QP BFS(int ii, int ij, int oi, int oj) {
-        QP qp;
+    void Dijkstra (Position act, Position obj) {
 
-        for (int u = 0; u < MAX; ++u) {
-
-        }
-        return qp;
     }
 
     //"MAIN"
@@ -116,7 +130,7 @@ struct PLAYER_NAME : public Player {
         //Inicialització vectors cada ronda
         v_soldiers = soldiers(me());
         v_helicopters = helicopters(me());
-        int sold_size = int(v_soldiers.size())
+        int sold_size = int(v_soldiers.size());
         visitats = VVE(MAX, VE(MAX,false));
 
         //primera ronda pillar tots els posts
@@ -126,21 +140,19 @@ struct PLAYER_NAME : public Player {
         }
 
         //Vector cues per fer el search algorithm de cada soldat
-        vcues = VQ(sold_size);
+        //vcues = VQ(sold_size);
         for (int i = 0; i < sold_size; ++i) {
-            Position pos_obj = which_post(id);
-            Position pos_act = data(v_soldiers).pos;
-            vcues[i] = BFS(pos_act.i, pos_act.j, pos_obj.i.pos_obj.j);
+            Position pos_obj = v_posts[i].pos;
+            Position pos_act = data(v_soldiers[i]).pos;
+            //vcues[i] = Dijkstra(pos_act, pos_obj);
 
             //Moure el soldat a la posició que toca
-            Position next = vcues[i].front();
+            /*Position next = vcues[i].front();
             vcues[i].pop();
             command_soldier(v_soldiers[i],next.i, next.j);
+            */
         }
-
     }
-
-
 };
 
 
