@@ -132,24 +132,41 @@ struct PLAYER_NAME : public Player {
     //Search algorithm per trobar la ruta
 
     void bfs(const Position &i_pos, Position &f_pos, QP &qp){
-         visitats = (MAX, VE (MAX, false));
-         QP q;
-         bool trobat = 0;
-         QP.push_back(i_pos);
-         visitats[i_pos.i][i_pos.j] = true;
-         while (not q.empty() or not trobat) {
-             Position p = q.front();
-             q.pop();
-             if (what(i_pos.i-1,i_pos.j) != -1 or what(i_pos.i-1,i_pos.j) != MOUNTAIN or fire_time(i_pos.i-1,i_pos.j) == 0)
-                q.push(Position(i-1,j));
-             if (what(i_pos.i+1,i_pos.j) != -1 or what(i_pos.i+1,i_pos.j) != MOUNTAIN or fire_time(i_pos.i+1,i_pos.j) == 0)
-                q.push(Position(i+1,j));
-             if (what(i_pos.i,i_pos.j-1) != -1 or what(i_pos.i,i_pos.j-1) != MOUNTAIN or fire_time(i_pos.i,i_pos.j-1) == 0)
-                q.push(Position(i,j-1));
-             if (what(i_pos.i,i_pos.j+1) != -1 or what(i_pos.i,i_pos.j+1) != MOUNTAIN or fire_time(i_pos.i,i_pos.j+1) == 0)
-                q.push(Position(i,j+1));
-         }
-     }
+        visitats = (MAX, VE (MAX, false));
+        QP q;
+        bool trobat = 0;
+        QP.push_back(i_pos);
+        visitats[i_pos.i][i_pos.j] = true;
+        while (not q.empty()) {
+            Position p = q.front();
+            q.pop();
+            visitats[p.i][p.j] = true;
+            if (p == fpos)
+            break;
+            //UP
+            if (what(p.i-1,p.j) != -1 or what(p.i-1,p.j) != MOUNTAIN or fire_time(p.i-1,p.j) == 0)
+                q.push(Position(p.i-1,p.j));
+            //RIGHT_UP
+            if (what(p.i-1,p.j+1) != -1 or what(p.i-1,p.j+1) != MOUNTAIN or fire_time(p.i-1,p.j+1) == 0)
+                q.push(Position(p.i+1,p.j));
+            //RIGHT
+            if (what(p.i+1,p.j) != -1 or what(p.i+1,p.j) != MOUNTAIN or fire_time(p.i+1,p.j) == 0)
+                q.push(Position(p.i+1,p.j));
+            //DOWN_RIGHT
+            if (what(p.i+1,p.j) != -1 or what(p.i+1,p.j) != MOUNTAIN or fire_time(p.i+1,p.j) == 0)
+                q.push(Position(p.i+1,p.j));
+            //DOWN
+            if (what(p.i,p.j-1) != -1 or what(p.i,p.j-1) != MOUNTAIN or fire_time(p.i,p.j-1) == 0)
+                q.push(Position(p.i,p.j-1));
+            //DOWN_LEFT
+            if (what(p.i+1,p.j) != -1 or what(p.i+1,p.j) != MOUNTAIN or fire_time(p.i+1,p.j) == 0)
+                q.push(Position(p.i+1,p.j));
+            //LEFT
+            if (what(p.i,p.j+1) != -1 or what(p.i,p.j+1) != MOUNTAIN or fire_time(p.i,p.j+1) == 0)
+                q.push(Position(p.i,p.j+1));
+
+        }
+    }
 
     //"MAIN"
 
