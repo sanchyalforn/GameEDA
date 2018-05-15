@@ -12,6 +12,10 @@ using namespace std;
 
 struct PLAYER_NAME : public Player {
 
+
+    static constexpr int I[8] = {-1, -1,  0, 1, 1, 1, 0, 1 };
+    static constexpr int J[8] = { 0, -1, -1,-1, 0, 1, 1, 1 };
+
     /**
     * Factory: returns a new instance of this class.
     * Do not modify this function.
@@ -133,49 +137,41 @@ struct PLAYER_NAME : public Player {
 
     bool enemy_there_QuestionMark(Position a) {
         int id = which_soldier(a.i,a.j);
-        if (id == 0) return false;
+        if (id <= 0) return false;
         return find(v_soldiers.begin(),v_soldiers.end(),id) == v_soldiers.end();
+    }
+
+    Position sum(const Position &inicial, const Position &sumada) {
+        return Position(inicial.i + sumada.i, inicial.j + sumada.j);
     }
 
     //Search algorithm per trobar la ruta
 
-    void bfs(const Position &i_pos, Position &f_pos, QP &qp){
-        visitats = (MAX, VE (MAX, false));
+    void bfs(const Position &i_pos,const Position &f_pos, QP &qp){
+        visitats = VVE (MAX, VE (MAX, false));
         QP q;
-        bool trobat = 0;
-        QP.push_back(i_pos);
-        visitats[i_pos.i][i_pos.j] = true;
-        while (not q.empty()) {
-            Position p = q.front();
-            q.pop();
-            visitats[p.i][p.j] = true;
-            if (p == fpos)
-                break;
-            //UP
-            if (what(p.i-1,p.j) != -1 or what(p.i-1,p.j) != MOUNTAIN or fire_time(p.i-1,p.j) == 0)
-                q.push(Position(p.i-1,p.j));
-            //RIGHT_UP
-            if (what(p.i-1,p.j+1) != -1 or what(p.i-1,p.j+1) != MOUNTAIN or fire_time(p.i-1,p.j+1) == 0)
-                q.push(Position(p.i-1,p.j+1));
-            //RIGHT
-            if (what(p.i,p.j+1) != -1 or what(p.i,p.j+1) != MOUNTAIN or fire_time(p.i,p.j+1) == 0)
-                q.push(Position(p.i,p.j+1));
-            //DOWN_RIGHT
-            if (what(p.i+1,p.j+1) != -1 or what(p.i+1,p.j+1) != MOUNTAIN or fire_time(p.i+1,p.j+1) == 0)
-                q.push(Position(p.i+1,p.j+1));
-            //DOWN
-            if (what(p.i+1,p.j) != -1 or what(p.i+1,p.j) != MOUNTAIN or fire_time(p.i+1,p.j) == 0)
-                q.push(Position(p.i+1,p.j));
-            //DOWN_LEFT
-            if (what(p.i+1,p.j-1) != -1 or what(p.i+1,p.j-1) != MOUNTAIN or fire_time(p.i+1,p.j-1) == 0)
-                q.push(Position(p.i+1,p.j-1));
-            //LEFT
-            if (what(p.i,p.j-1) != -1 or what(p.i,p.j-1) != MOUNTAIN or fire_time(p.i,p.j-1) == 0)
-                q.push(Position(p.i,p.j-1));
-            //LEFT_UP
-            if (what(p.i-1,p.j-1) != -1 or what(p.i-1,p.j-1) != MOUNTAIN or fire_time(p.i-1,p.j-1) == 0)
-                q.push(Position(p.i-1,p.j-1));
+        queue <pair <Position,QP> > qq;
+        q.push({i_pos,queue<QP>()});
 
+        while (not q.empty()) {
+            pair <Position, queue <Position> > p = q.front(); q.pop();
+            visitats[p.i][p.j] = true;
+
+            for (int i = 0; i < 8; ++i) {
+                QP route = p.second;
+                Pos seg = sum(p.first,Position(I[i],J[i]));
+
+                if (not visitats[seg.i][seg.j]) {
+                    if (what(seg.i,seg.j) != MOUNTAIN or what(seg.i,seg.j) != WATER or fire_time(seg.i,seg.j) == 0) {
+                        route.push(seg.i,seg.j);
+                        q.push({seg,route});
+                    }
+                    if (not seg != f_pos) {
+                        qp = route
+                        break;
+                    }
+                }
+            }
         }
     }
 
