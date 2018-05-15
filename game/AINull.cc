@@ -129,6 +129,14 @@ struct PLAYER_NAME : public Player {
         return ((num_meus < 3 and num_enemics > num_meus) or (num_enemics > 2*num_meus-1));
     }
 
+    //Detecta si hi ha un enemic a la posicio i j
+
+    bool enemy_there_QuestionMark(Position a) {
+        int id = which_soldier(a.i,a.j);
+        if (id == 0) return false;
+        return find(v_soldiers.begin(),v_soldiers.end(),id) == v_soldiers.end();
+    }
+
     //Search algorithm per trobar la ruta
 
     void bfs(const Position &i_pos, Position &f_pos, QP &qp){
@@ -142,28 +150,31 @@ struct PLAYER_NAME : public Player {
             q.pop();
             visitats[p.i][p.j] = true;
             if (p == fpos)
-            break;
+                break;
             //UP
             if (what(p.i-1,p.j) != -1 or what(p.i-1,p.j) != MOUNTAIN or fire_time(p.i-1,p.j) == 0)
                 q.push(Position(p.i-1,p.j));
             //RIGHT_UP
             if (what(p.i-1,p.j+1) != -1 or what(p.i-1,p.j+1) != MOUNTAIN or fire_time(p.i-1,p.j+1) == 0)
-                q.push(Position(p.i+1,p.j));
+                q.push(Position(p.i-1,p.j+1));
             //RIGHT
-            if (what(p.i+1,p.j) != -1 or what(p.i+1,p.j) != MOUNTAIN or fire_time(p.i+1,p.j) == 0)
-                q.push(Position(p.i+1,p.j));
-            //DOWN_RIGHT
-            if (what(p.i+1,p.j) != -1 or what(p.i+1,p.j) != MOUNTAIN or fire_time(p.i+1,p.j) == 0)
-                q.push(Position(p.i+1,p.j));
-            //DOWN
-            if (what(p.i,p.j-1) != -1 or what(p.i,p.j-1) != MOUNTAIN or fire_time(p.i,p.j-1) == 0)
-                q.push(Position(p.i,p.j-1));
-            //DOWN_LEFT
-            if (what(p.i+1,p.j) != -1 or what(p.i+1,p.j) != MOUNTAIN or fire_time(p.i+1,p.j) == 0)
-                q.push(Position(p.i+1,p.j));
-            //LEFT
             if (what(p.i,p.j+1) != -1 or what(p.i,p.j+1) != MOUNTAIN or fire_time(p.i,p.j+1) == 0)
                 q.push(Position(p.i,p.j+1));
+            //DOWN_RIGHT
+            if (what(p.i+1,p.j+1) != -1 or what(p.i+1,p.j+1) != MOUNTAIN or fire_time(p.i+1,p.j+1) == 0)
+                q.push(Position(p.i+1,p.j+1));
+            //DOWN
+            if (what(p.i+1,p.j) != -1 or what(p.i+1,p.j) != MOUNTAIN or fire_time(p.i+1,p.j) == 0)
+                q.push(Position(p.i+1,p.j));
+            //DOWN_LEFT
+            if (what(p.i+1,p.j-1) != -1 or what(p.i+1,p.j-1) != MOUNTAIN or fire_time(p.i+1,p.j-1) == 0)
+                q.push(Position(p.i+1,p.j-1));
+            //LEFT
+            if (what(p.i,p.j-1) != -1 or what(p.i,p.j-1) != MOUNTAIN or fire_time(p.i,p.j-1) == 0)
+                q.push(Position(p.i,p.j-1));
+            //LEFT_UP
+            if (what(p.i-1,p.j-1) != -1 or what(p.i-1,p.j-1) != MOUNTAIN or fire_time(p.i-1,p.j-1) == 0)
+                q.push(Position(p.i-1,p.j-1));
 
         }
     }
