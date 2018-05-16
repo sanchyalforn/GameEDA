@@ -28,14 +28,14 @@ struct PLAYER_NAME : public Player {
     using VE    = vector <int>;
     using VVE   = vector <VE>;
     using QP    = queue <Position>;
-    using VQ    = vector <pair <int,QP>>;
+    using VIQ    = vector <pair <int,QP>>;
 
 
     VVE visitats;
     VE v_soldiers;
     VE v_helicopters;
     vector <Post> v_posts;
-    VQ v_cues;
+    VIQ v_cues;
 
 
     //FOREST GRASS WATER MOUNTAIN
@@ -147,28 +147,27 @@ struct PLAYER_NAME : public Player {
 
     //Search algorithm per trobar la ruta
 
-    void bfs(const Position &i_pos,const Position &f_pos, QP &qp){
+    void BFS(const Position &i_pos,const Position &f_pos, QP &qp){
         visitats = VVE (MAX, VE (MAX, false));
-        QP q;
-        queue <pair <Position,QP> > qq;
-        q.push({i_pos,queue<QP>()});
+        queue <pair <Position,queue<Position> > > q;
+        q.push({i_pos,queue<Position>()});
+        bool trobat = false;
+        while (not q.empty() and not trobat) {
+            pair <Position, QP > p = q.front(); q.pop();
+            visitats[p.first.i][p.first.j] = true;
+            for (int i = 0; i < 8 and not trobat; ++i) {
 
-        while (not q.empty()) {
-            pair <Position, queue <Position> > p = q.front(); q.pop();
-            visitats[p.i][p.j] = true;
-
-            for (int i = 0; i < 8; ++i) {
                 QP route = p.second;
-                Pos seg = sum(p.first,Position(I[i],J[i]));
-
+                Position seg = sum(p.first,Position(I[i],J[i]));
                 if (not visitats[seg.i][seg.j]) {
-                    if (what(seg.i,seg.j) != MOUNTAIN or what(seg.i,seg.j) != WATER or fire_time(seg.i,seg.j) == 0) {
-                        route.push(seg.i,seg.j);
+                    if (pos_ok(seg) and what(seg.i,seg.j) != MOUNTAIN and what(seg.i,seg.j) != WATER and fire_time(seg.i,seg.j) == 0) {
+                        route.push(Position(seg.i,seg.j));
                         q.push({seg,route});
                     }
-                    if (not seg != f_pos) {
-                        qp = route
-                        break;
+                    if (seg.i == f_pos.i  and seg.j == f_pos.j){
+                        cerr << "posicio trobada: i: " << seg.i << " j: " << seg.j << endl;
+                        qp = route;
+                        trobat = true;
                     }
                 }
             }
@@ -178,12 +177,15 @@ struct PLAYER_NAME : public Player {
     //"MAIN"
 
     virtual void play () {
+
+        if (status(me()) > 0.35) return;
         //Inicialització vectors cada ronda
+        cerr << "començo ronda" << endl;
         v_soldiers = soldiers(me());
         v_helicopters = helicopters(me());
         int sold_size = int(v_soldiers.size());
-        visitats = VVE(MAX, VE(MAX,false));
-        v_cues = VQ(sold_size);
+        v_cues = VIQ(sold_size);
+        cerr << "vectors copiats ronda: " << round() << endl;
 
         //primera ronda pillar tots els posts
         if (round() == 0){
@@ -193,17 +195,22 @@ struct PLAYER_NAME : public Player {
 
         //Vector cues per fer el search algorithm de cada soldat
         for (int i = 0; i < sold_size; ++i) {
-            Position pos_obj = v_posts[i].pos;
+            cerr << "entro al for iteracio: " << i << endl;
+            Position pos_obj = which_post(v_soldiers[i]);
+            cerr << "post objectiu triat: i: " << pos_obj.i <<"j: " << pos_obj.j << endl;
             Position pos_act = data(v_soldiers[i]).pos;
             v_cues[i].first = v_soldiers[i];
-            BFS(pos_act, pos_obj,v_cues[i]);
+            cerr << "pos act, pos obj i comença BFS" << endl;
+            BFS(pos_act, pos_obj,v_cues[i].second);
+            cerr << "surto del BFS" << endl;
 
             //MOVE SOLDIER
-            /*Position next = vcues[i].front();
-            vcues[i].pop();
+            Position next = v_cues[i].second.front();
+            v_cues[i].second.pop();
             command_soldier(v_soldiers[i],next.i, next.j);
-            */
-            //Calcular POS on anar de cada helicopter
+            cerr << "Soldier mogut" << endl;
+
+            /*//Calcular POS on anar de cada helicopter
             Position move_hel_1 = data(v_helicopters[0]).pos;
             int orient_1 = data(v_helicopters[0]).orientation;
             move_hel_1 = where(move_hel_1);
@@ -212,10 +219,13 @@ struct PLAYER_NAME : public Player {
             move_hel_2 = where(move_hel_2);
 
             //MOVE HELICOPTER
-            //code_command_helicopter(id,code);
+            //code_command_helicopter(id,code);*/
         }
     }
 };
+
+constexpr int PLAYER_NAME::I[8];
+constexpr int PLAYER_NAME::J[8];
 
 
 /**

@@ -78,7 +78,7 @@ struct PLAYER_NAME : public Player {
     if (ii >= 0 and ii < MAX and jj >= 0 and jj < MAX)
       command_parachuter(ii, jj);
   }
-  
+
   /**
    * Play method, invoked once per each round.
    */
