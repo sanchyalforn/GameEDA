@@ -15,6 +15,8 @@ struct PLAYER_NAME : public Player {
 
     static constexpr int I[8] = {-1, -1,  0, 1, 1, 1, 0, 1 };
     static constexpr int J[8] = { 0, -1, -1,-1, 0, 1, 1, 1 };
+    const int HI[4] = { 1, 0, -1, 0 };
+    const int HJ[4] = { 0, 1, 0, -1 };
 
     /**
     * Factory: returns a new instance of this class.
@@ -58,9 +60,6 @@ struct PLAYER_NAME : public Player {
 
     //EL PUNT ESTA FORA LIMITS?
 
-    bool fora_limits(int i, int j) {
-        return (i < 0 or i >= MAX or j < 0 or j >= MAX);
-    }
 
     //DISTANCIA?
 
@@ -74,11 +73,11 @@ struct PLAYER_NAME : public Player {
         Position aux (-1,-1);
         for (int i = 0; i < MAX; ++i)
             for (int j = 0; j < MAX; ++j) {
-                if (fora_limits(i,j))
+                if (not pos_ok(i,j))
                     break;
                 int owner = post_owner(i,j);
                 if ((owner != NO_POST) and (owner == NOONE or owner != me())) {
-                    if (aux.i == -1)
+                    if (aux.i == -1 or distance(act,aux) > distance(act,Position(i,j)))
                         aux = Position(i,j);
                 }
             }
@@ -89,28 +88,24 @@ struct PLAYER_NAME : public Player {
 
     Position which_post (int id) {
         Position sold = data(id).pos;
-        int act_v;
-        int last_v;
-        Position aux (-1,-1);
-
-        for (int i = 0; i < MAX; ++i)
-            for (int j = 0; j < MAX; ++j) {
-                if (fora_limits(i,j))
-                    break;
-                int owner = post_owner(i,j);
-                if ((owner != NO_POST) and (owner == NOONE or owner != me())) {
-                    if (aux.i == -1)
-                        act_v = last_v = post_value(i,j);
-                    if (distance(sold,Position(i,j)) < distance(aux,sold)) {
-                        if (last_v == act_v or act_v > last_v)
-                            aux = Position(i,j);
-                        else
-                            if (distance(sold,Position(i,j)) <= distance(aux,Position(i,j))*1.3)
-                                aux = sold;
-                    }
-                }
-            }
+        int act_v = v_posts[0].value;
+        int last_v = act_v;
+        Position aux = v_posts[0].pos;
+        for (int i = 0; i < (int)v_posts.size(); ++i) {
+            Position act = v_posts[i].pos;
+            if (post_owner(act.i,act.j) != me())
+                if ((distance(sold,act) < distance(sold,aux) and act_v >= last_v) or (distance(sold,act) <= distance(aux,act)*1.5 and act_v > last_v))
+                    aux = act;
+        }
         return aux;
+    }
+
+    bool parachuter_QuestionMark(int x, int y) {
+
+        if ((what(x,y) == WATER) or (what(x,y) == MOUNTAIN)) return false;
+        if (fire_time(x,y) != 0) return false;
+        if (which_soldier(x,y) != 0) return false;
+        return true;
     }
 
     //WORTH TIRAR NAPALM?
@@ -152,9 +147,9 @@ struct PLAYER_NAME : public Player {
         queue <pair <Position,queue<Position> > > q;
         q.push({i_pos,queue<Position>()});
         bool trobat = false;
+        visitats[i_pos.i][i_pos.j] = true;
         while (not q.empty() and not trobat) {
             pair <Position, QP > p = q.front(); q.pop();
-            visitats[p.first.i][p.first.j] = true;
             for (int i = 0; i < 8 and not trobat; ++i) {
 
                 QP route = p.second;
@@ -163,9 +158,9 @@ struct PLAYER_NAME : public Player {
                     if (pos_ok(seg) and what(seg.i,seg.j) != MOUNTAIN and what(seg.i,seg.j) != WATER and fire_time(seg.i,seg.j) == 0) {
                         route.push(Position(seg.i,seg.j));
                         q.push({seg,route});
+                        visitats[seg.i][seg.j] = true;
                     }
                     if (seg.i == f_pos.i  and seg.j == f_pos.j){
-                        cerr << "posicio trobada: i: " << seg.i << " j: " << seg.j << endl;
                         qp = route;
                         trobat = true;
                     }
@@ -180,12 +175,10 @@ struct PLAYER_NAME : public Player {
 
         if (status(me()) > 0.35) return;
         //Inicialització vectors cada ronda
-        cerr << "començo ronda" << endl;
         v_soldiers = soldiers(me());
         v_helicopters = helicopters(me());
         int sold_size = int(v_soldiers.size());
         v_cues = VIQ(sold_size);
-        cerr << "vectors copiats ronda: " << round() << endl;
 
         //primera ronda pillar tots els posts
         if (round() == 0){
@@ -195,22 +188,17 @@ struct PLAYER_NAME : public Player {
 
         //Vector cues per fer el search algorithm de cada soldat
         for (int i = 0; i < sold_size; ++i) {
-            cerr << "entro al for iteracio: " << i << endl;
             Position pos_obj = which_post(v_soldiers[i]);
-            cerr << "post objectiu triat: i: " << pos_obj.i <<"j: " << pos_obj.j << endl;
             Position pos_act = data(v_soldiers[i]).pos;
             v_cues[i].first = v_soldiers[i];
-            cerr << "pos act, pos obj i comença BFS" << endl;
             BFS(pos_act, pos_obj,v_cues[i].second);
-            cerr << "surto del BFS" << endl;
 
             //MOVE SOLDIER
             Position next = v_cues[i].second.front();
             v_cues[i].second.pop();
             command_soldier(v_soldiers[i],next.i, next.j);
-            cerr << "Soldier mogut" << endl;
 
-            /*//Calcular POS on anar de cada helicopter
+            //Calcular POS on anar de cada helicopter
             Position move_hel_1 = data(v_helicopters[0]).pos;
             int orient_1 = data(v_helicopters[0]).orientation;
             move_hel_1 = where(move_hel_1);
@@ -219,14 +207,13 @@ struct PLAYER_NAME : public Player {
             move_hel_2 = where(move_hel_2);
 
             //MOVE HELICOPTER
-            //code_command_helicopter(id,code);*/
+            //code_command_helicopter(id,code);
         }
     }
 };
 
 constexpr int PLAYER_NAME::I[8];
 constexpr int PLAYER_NAME::J[8];
-
 
 /**
 * Do not modify the following line.
