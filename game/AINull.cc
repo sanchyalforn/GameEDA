@@ -219,3 +219,32 @@ constexpr int PLAYER_NAME::J[8];
 * Do not modify the following line.
 */
 RegisterPlayer(PLAYER_NAME);
+
+
+
+void dijkstra() {
+    D = VInt(n,INF);    // inicialitza el vector de distancies
+    D[origen] = 0;      // fica distancia 0 el origen
+    pare = VInt(n);
+    priority_queue<Pars> Q;
+    Q.push(Pars(0,origen));    // Pars: <vertex,dist>
+
+    while(not Q.empty()) {
+        int p = -Q.top().first;      // extreiem el pes
+        int v = Q.top().second;     // extreiem el vertex
+        Q.pop();
+
+        if (p == D[v]) {
+            if (v == desti) return;     // quan trobo el desti acaba
+            for (int i = 0; i < (int)G[v].size(); ++i) {
+                int adj = G[v][i].first;       // extreiem el vertex adjacent a v
+                int pes = G[v][i].second;      // extreiem el pes de v a adj
+                if (p + pes < D[adj]) {
+                    pare[adj] = v;
+                    D[adj] = p + pes;
+                    Q.push(Pars(-D[adj],adj));
+                }
+            }
+        }
+    }
+}

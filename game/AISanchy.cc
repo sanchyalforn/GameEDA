@@ -1,5 +1,5 @@
 #include "Player.hh"
-
+#include <queue>
 
 /**
  * Write the name of your player and save this file
@@ -31,38 +31,60 @@ struct PLAYER_NAME : public Player {
     using VC = vector <char>;
     using VVC = vector <VC>;
     using QP = queue <Position>;
+    using PP = pair <int,Position>;
+    using PQP = priority_queue <PP, vector <PP>, greater<PP> >;
 
     VE v_soldier;
     VE v_helicopter;
     vector <QP> cues_soldier;
+    VE D;
+    int infinit = 1e9;
 
 
     bool my_soldier(int x, int y, int id) {
         if (id == 0 or id == -1) return false;
-        return find(v_soldier.begin(),v_soldier.end(),id);
+        return find(v_soldier.begin(),v_soldier.end(),id) != v_soldier.end();
     }
 
-    bool Post_QuestionMark(int x, int y, queue<Position> &Q) {
-        if (x < 0 or x >= MAX or y < 0 or y >=  MAX or what(x,y) == MOUNTAIN or what(x,y) == WATER or fire_time(x,y) != 0 or not my_soldier(x,y,which_soldier(x,y))) return false;
-        if (post_owner(x,y) != -2 and post_owner(x,y) != me()) return true;
-        Q.push(Position(x,y));
-        return false;
+    double ponderacio (int i, int j) {
+        double aux;
+        //TERRENY o FOC
+
+
+        //ENEMICS
+
+        return aux;
     }
 
-    QP solu(int i, int j) {
-        QP Q;
-        Q.push(Position(i,j));
+    void dijkstra(const WGraph& G, int s, vector<double>& d, vector<int>& p) {
+
+        vector<vector <double> > distance(MAX, vector <double>(MAX, infinit));
+        distance[s.i][s.j] = 0;
+        vector<vector <double> > previous(MAX, vector <double>(MAX, -1));
+        VVE visitats(n, false);
+        priority_queue<PP> Q;
+        Q.push(PP(0,Position(pos.i,pos.j)));
         while (not Q.empty()) {
-            Position v = Q.front(); Q.pop();
-            int x = v.i;
-            int y = v.j;
+            Position u = Q.top().second; Q.pop();
+            if (visitats[u.i][u.j])
+                continue;
+            visitats[u.i][u.j] = true;
             for (int i = 0; i < 8; ++i) {
-                if (Post_QuestionMark(x+I[i],y+J[i],Q)) {
-                    return Q;
+                Position p = a.second;
+                Position act = (u.i+I[i],u.j+J[i])
+                if (not pos_ok(act.i, act.j))
+                    continue;
+                double c = ponderacio(act.i,act.j);
+                if (distance[v] > distance[u] + c) {
+                    distance[v] = distance[u] + c;
+                    previous[v] = u;
+                    Q.push(WArc(distance[v], v));
                 }
             }
         }
     }
+
+
 
   /**
    * Play method, invoked once per each round.
@@ -75,11 +97,13 @@ struct PLAYER_NAME : public Player {
       v_helicopter = helicopters(my_id);
       int hel_size = v_helicopter.size();
       for (int i = 0; i < sold_size; ++i) {
+          QP qp;
           Position sold = data(v_soldier[i]).pos;
-          cues_soldier.push_back(solu(sold.i,sold.j));
+          Dijkstra(sold.i,sold.j);
+          cues_soldier.push_back(qp);
+          Position next = cues_soldier[i].front();
+          command_soldier(v_soldier[i],next.i,next.j);
       }
-
-
   }
 
 };
