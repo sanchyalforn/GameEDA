@@ -64,7 +64,7 @@ struct PLAYER_NAME : public Player {
 
     //DISTANCIA?
 
-    int distance(const Position &in, const Position &f) {
+    double distance(const Position &in, const Position &f) {
         return abs(f.i - in.i) + abs(f.j - in.j);
     }
 
@@ -86,12 +86,12 @@ struct PLAYER_NAME : public Player {
 
     Position which_post (int id) {
         Position sold = data(id).pos;
-        int act_v = v_posts[0].value;
-        int last_v = act_v;
+        //int act_v = v_posts[0].value;
+        //int last_v = act_v;
         Position aux = v_posts[0].pos;
         for (int i = 0; i < (int)v_posts.size(); ++i) {
             Position act = v_posts[i].pos;
-            if (post_owner(act.i,act.j) != me() or post_owner(act.i,act.j) == -1)
+            if (post_owner(act.i,act.j) != me())
                 if ((distance(sold,act) < distance(sold,aux)))
                     aux = act;
         }
