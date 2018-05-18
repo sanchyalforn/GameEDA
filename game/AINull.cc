@@ -1,6 +1,7 @@
 #include "Player.hh"
 #include <utility>
 #include <queue>
+#include <cstdlib>
 using namespace std;
 
 /**
@@ -15,8 +16,8 @@ struct PLAYER_NAME : public Player {
 
     static constexpr int I[8] = {-1, -1,  0, 1, 1, 1, 0, 1 };
     static constexpr int J[8] = { 0, -1, -1,-1, 0, 1, 1, 1 };
-    const int HI[4] = { 1, 0, -1, 0 };
-    const int HJ[4] = { 0, 1, 0, -1 };
+    //const int HI[4] = { 1, 0, -1, 0 };
+    //const int HJ[4] = { 0, 1, 0, -1 };
 
     /**
     * Factory: returns a new instance of this class.
@@ -70,17 +71,14 @@ struct PLAYER_NAME : public Player {
     //CAP A ON ANAR HELICOPTER
 
     Position where (Position &act) {
-        Position aux (-1,-1);
-        for (int i = 0; i < MAX; ++i)
-            for (int j = 0; j < MAX; ++j) {
-                if (not pos_ok(i,j))
-                    break;
-                int owner = post_owner(i,j);
-                if ((owner != NO_POST) and (owner == NOONE or owner != me())) {
-                    if (aux.i == -1 or distance(act,aux) > distance(act,Position(i,j)))
-                        aux = Position(i,j);
-                }
+        Position aux = v_posts[0].pos;
+        for (int j = 0; j < (int)v_posts.size(); ++j) {
+            Position act = v_posts[j].pos;
+            if (post_owner(act.i,act.j) != me()) {
+                if (distance(act,aux) > distance(act,act))
+                    aux = act;
             }
+        }
         return aux;
     }
 
@@ -93,10 +91,12 @@ struct PLAYER_NAME : public Player {
         Position aux = v_posts[0].pos;
         for (int i = 0; i < (int)v_posts.size(); ++i) {
             Position act = v_posts[i].pos;
-            if (post_owner(act.i,act.j) != me())
-                if ((distance(sold,act) < distance(sold,aux) and act_v >= last_v) or (distance(sold,act) <= distance(aux,act)*1.5 and act_v > last_v))
+            if (post_owner(act.i,act.j) != me() or post_owner(act.i,act.j) == -1)
+                if ((distance(sold,act) < distance(sold,aux)))
                     aux = act;
         }
+        if (not pos_ok(aux.i,aux.j))
+            aux = v_posts[(rand()%(int)v_posts.size())+1].pos;
         return aux;
     }
 
@@ -173,18 +173,18 @@ struct PLAYER_NAME : public Player {
 
     virtual void play () {
 
+
+        //primera ronda pillar tots els posts
+            v_posts = posts();
+            int post_size = v_posts.size();
+
         if (status(me()) > 0.35) return;
+
         //Inicialització vectors cada ronda
         v_soldiers = soldiers(me());
         v_helicopters = helicopters(me());
         int sold_size = int(v_soldiers.size());
         v_cues = VIQ(sold_size);
-
-        //primera ronda pillar tots els posts
-        if (round() == 0){
-            v_posts = posts();
-            int post_size = v_posts.size();
-        }
 
         //Vector cues per fer el search algorithm de cada soldat
         for (int i = 0; i < sold_size; ++i) {
