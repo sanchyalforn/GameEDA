@@ -46,8 +46,8 @@ struct PLAYER_NAME : public Player {
         return find(v_soldier.begin(),v_soldier.end(),id) != v_soldier.end();
     }
 
-    double ponderacio (int i, int j) {
-        double aux;
+    int ponderacio (int i, int j) {
+        int aux;
         //TERRENY o FOC
 
 
@@ -58,9 +58,9 @@ struct PLAYER_NAME : public Player {
 
     void dijkstra(const WGraph& G, int s, vector<double>& d, vector<int>& p) {
 
-        vector<vector <double> > distance(MAX, vector <double>(MAX, infinit));
-        distance[s.i][s.j] = 0;
-        vector<vector <double> > previous(MAX, vector <double>(MAX, -1));
+        vector<vector <int> > pond(MAX, vector <int>(MAX, infinit));
+        pond[s.i][s.j] = 0;
+        vector<vector <int> > previous(MAX, vector <int>(MAX, -1));
         VVE visitats(n, false);
         priority_queue<PP> Q;
         Q.push(PP(0,Position(pos.i,pos.j)));
@@ -75,10 +75,10 @@ struct PLAYER_NAME : public Player {
                 if (not pos_ok(act.i, act.j))
                     continue;
                 double c = ponderacio(act.i,act.j);
-                if (distance[v] > distance[u] + c) {
-                    distance[v] = distance[u] + c;
+                if (pond[v] > pond[u] + c) {
+                    pond[v] = pond[u] + c;
                     previous[v] = u;
-                    Q.push(WArc(distance[v], v));
+                    Q.push(WArc(pond[v], v));
                 }
             }
         }
