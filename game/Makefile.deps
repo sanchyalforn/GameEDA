@@ -2,6 +2,8 @@ AIDemo.o: AIDemo.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
  Defs.hh State.hh Action.hh Random.hh Registry.hh
 AINull.o: AINull.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
  Defs.hh State.hh Action.hh Random.hh Registry.hh
+AISanchy.o: AISanchy.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
+ Defs.hh State.hh Action.hh Random.hh Registry.hh
 Action.o: Action.cc Action.hh Structs.hh Utils.hh Defs.hh
 Board.o: Board.cc Board.hh Info.hh Settings.hh Structs.hh Utils.hh \
  Defs.hh State.hh Action.hh Random.hh
@@ -20,5 +22,5 @@ Settings.o: Settings.cc Settings.hh Structs.hh Utils.hh Defs.hh
 State.o: State.cc State.hh Structs.hh Utils.hh Defs.hh
 Structs.o: Structs.cc Structs.hh Utils.hh Defs.hh
 Utils.o: Utils.cc Utils.hh Defs.hh
-jeje.o: jeje.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh Defs.hh \
+asd.o: asd.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh Defs.hh \
  State.hh Action.hh Random.hh Registry.hh

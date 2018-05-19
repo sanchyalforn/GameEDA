@@ -83,7 +83,7 @@ struct PLAYER_NAME : public Player {
     }
 
 
-
+/*
     void which_cities(int id_sold, queue<Position> &q) {
         vector< pair<Pos, int> > cities(nb_cities());
 
@@ -102,9 +102,9 @@ struct PLAYER_NAME : public Player {
                 q.push(p.first);
             }
     }
+*/
 
-
-    void which_enemies(int ork, queue<Unit> &q) {
+    /*void which_enemies(int ork, queue<Unit> &q) {
 		vector< pair<Unit, vector<int> > > enemies(0);
 
 		for (int i = 0; i < nb_units(); i++) {
@@ -122,7 +122,7 @@ struct PLAYER_NAME : public Player {
 		for (auto p : enemies) {
 			q.push(p.first);
 		}
-	}
+	}*/
 
     //QUIN POST ANAR?
 
@@ -147,7 +147,7 @@ struct PLAYER_NAME : public Player {
     bool napalm_QuestionMark(Position pos) {
         int num_enemics = 0;
         int num_meus = 0;
-        bool yes_OMG = false;
+        bool post= false;
         for (int i = 0; i < 5; ++i)
             for (int j = 0; j < 5; ++j) {
                 int data_soldier = which_soldier(pos.i - 2 + i,pos.i - 2 + j);
@@ -159,7 +159,7 @@ struct PLAYER_NAME : public Player {
                 }
 
             }
-        return ((num_meus < 3 and num_enemics > num_meus) or (num_enemics > 2*num_meus-1));
+        return ((num_meus < 3 and num_enemics > num_meus) or (num_enemics > 2*num_meus-1) or post);
     }
 
     //Detecta si hi ha un enemic a la posicio i j

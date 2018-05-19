@@ -1,36 +1,27 @@
 #include "Player.hh"
-#include <queue>
+
 
 /**
  * Write the name of your player and save this file
  * with the same name and .cc extension.
  */
-#define PLAYER_NAME Creeper
+#define PLAYER_NAME Null
 
 
 struct PLAYER_NAME : public Player {
 
-  /**
-   * Factory: returns a new instance of this class.
-   * Do not modify this function.
-   */
-
+    /**
+    * Factory: returns a new instance of this class.
+    * Do not modify this function.
+    */
     static Player* factory () {
         return new PLAYER_NAME;
     }
 
-  /**
-   * Types and attributes for your player can be defined here.
-   */
-
-
-   /*------------------
-       DECLARACIONS
-         GLOBALS
-   ------------------*/
-
-   //Vector per les direccions: DRETA -> ESQUERRA
-   //UP; UP_RIGHT; RIGHT; DOWN_RIGHT; DOWN; DOWN_LEFT; LEFT; UP_LEFT
+    /*------------------
+        DECLARACIONS
+          GLOBALS
+    ------------------*/
 
     static constexpr int I[8] = {-1, -1,  0, 1, 1, 1, 0, 1 };
     static constexpr int J[8] = { 0, -1, -1,-1, 0, 1, 1, 1 };
@@ -41,30 +32,41 @@ struct PLAYER_NAME : public Player {
     using VVC   = vector <VC>;
     using QP    = queue <Position>;
     using PP    = pair <int,Position>;
-    //using PQP   = priority_queue <PP, vector <PP>, greater<PP> >;
 
     VE v_soldier;
     VE v_helicopter;
     vector <QP> cues_soldier;
     VVC G;
-    int NB_UNITS = 80;
+    VVE visitats;
 
     /*------------------
         RANDOM STUFF
     ------------------*/
 
-    int matrix () {
+    int matrix_Dijkstra () {
         int s = 0;
-        G = VVC(MAX,VC(MAX,'X'));
+        //G = VVC(MAX,VC(MAX,'X'));
         for (int i = 0; i < MAX; ++i) {
             for (int j = 0; j < MAX; ++j) {
                 if (fire_time(i,j) != 0) continue;
                 if (what(i,j) == GRASS) G[i][j] = 'G';
                 else if (what(i,j) == FOREST) G[i][j] = 'F';
                 if (which_soldier(i,j) != 0) ++s;
-                if (which_soldier(i,j) != 0 and which_soldier(i,j) != me()) G[i][j] = 'S';
-                if (which_post(i,j) != 0)
+                if ((which_soldier(i,j) != 0) and (which_soldier(i,j) != me())) G[i][j] = 'S';
+                if ((post_value(i,j) != -2) and (post_value(i,j) != me())) G[i][j] = 'P';
+            }
+        }
+        return s;
+    }
 
+    int matrix_BFS () {
+        int s = 0;
+        G = VVC(MAX,VC(MAX,'X'));
+        for (int i = 0; i < MAX; ++i) {
+            for (int j = 0; j < MAX; ++j) {
+                if (fire_time(i,j) != 0) continue;
+                if ((what(i,j) == GRASS) or (what(i,j) == FOREST)) G[i][j] = '.';
+                if ((post_value(i,j) != -2) and (post_value(i,j) != me())) G[i][j] = 't';
             }
         }
         return s;
@@ -74,38 +76,26 @@ struct PLAYER_NAME : public Player {
         return abs(p1.i - p2.i) + abs(p1.j - p2.j);
     }
 
+    Position sum(const Position &p1, const Position &p2) {
+        return Position(p1.i + p2.i, p1.j + p2.j);
+    }
+
     /*----------------
         SOLDIER
     ----------------*/
 
-    Data which_enemy(int ork) {
-        Data enemy;
-        enemy.pos = {-1, -1};
-
-        for (int i = 0; i < NB_UNITS; i++) {
-            // nearer and (same city or path)
-            if (data(i).player != me()
-            and ((manhattan_distance(unit(i).pos, unit(ork).pos) < manhattan_distance(enemy.pos, unit(ork).pos)
-            and ((cell(unit(i).pos).city_id == cell(unit(ork).pos).city_id)
-            or (cell(unit(i).pos).path_id == cell(unit(ork).pos).path_id))) or enemy.pos.i == -1))
-                enemy = unit(i);
-        }
-
-        return enemy;
-    }
-
-    Pos which_city(int id) {
+    Position which_post(int id) {
         Position aux    = Position(-1,-1);
         Position sold   = data(id).pos;
 
-        for (int i = 0; i < rows(); i++) {
-            for (int j = 0; j < cols(); j++) {
+        for (int i = 0; i < MAX; i++) {
+            for (int j = 0; j < MAX; j++) {
 
                 // Get Position
                 Position temp = Position(i, j);
 
                 // Check if city (not my property)
-                if (temp.city_id != -1 and city_owner(temp.city_id) != me()) {
+                if ((post_value(temp.i,temp.j) != -1) and (post_value(temp.i,temp.j) != me())) {
 
                     // Distance
                     if (aux.i == -1 or (manhattan_distance(temp,sold) < manhattan_distance(temp,aux))) {
@@ -117,32 +107,41 @@ struct PLAYER_NAME : public Player {
         return aux;
     }
 
-    void BFS(const Position &i_pos,const Position &f_pos, QP &qp){
-        visitats = VVE (MAX, VE (MAX, false));
-        queue <pair <Position,queue<Position> > > q;
-        q.push({i_pos,queue<Position>()});
-        bool trobat = false;
-        visitats[i_pos.i][i_pos.j] = true;
-        while (not q.empty() and not trobat) {
-            pair <Position, QP > p = q.front(); q.pop();
-            for (int i = 0; i < 8 and not trobat; ++i) {
+    QP BFS_X(int f, int c) {
 
-                QP route = p.second;
-                Position seg = sum(p.first,Position(I[i],J[i]));
-                if (not visitats[seg.i][seg.j]) {
-                    if (pos_ok(seg) and what(seg.i,seg.j) != MOUNTAIN and what(seg.i,seg.j) != WATER and fire_time(seg.i,seg.j) == 0) {
-                        route.push(Position(seg.i,seg.j));
-                        q.push({seg,route});
-                        visitats[seg.i][seg.j] = true;
-                    }
-                    if (seg.i == f_pos.i  and seg.j == f_pos.j){
-                        qp = route;
-                        trobat = true;
+        VVE dist(MAX,VE(MAX,-1));
+
+        dist[f][c] = 0;
+        QP Q;
+        QP qp;
+        Q.push(Position(f,c));
+        int d = 0;
+        while (not Q.empty()) {
+            Position v = Q.front();
+            Q.pop();
+            int x = v.i;
+            int y = v.j;
+
+            if (G[x][y] == 't' and d < dist[x][y]){
+                d = dist[x][y];
+                qp = Q;
+            }
+
+            if (G[x][y] == '.' or G[x][y] == 't') {
+                G[x][y] = 'X';
+                for (int i = 0; i < 8; ++i) {
+                    Position next = {x+I[i],y+J[i]};
+                    if (pos_ok(next) and G[next.i][next.j] != 'X') {
+                        dist[x][y] = d + 1;
+                        Q.push(Position(x,y));
                     }
                 }
             }
+            return qp;
         }
     }
+
+
 
     /*----------------
         HELICOPTER
@@ -156,27 +155,35 @@ struct PLAYER_NAME : public Player {
         return true;
     }
 
-    /*----------------
-           MAIN
-    ----------------*/
+    bool napalm_QuestionMark(Position pos) {
+        int num_enemics = 0;
+        int num_meus = 0;
+        bool yes_OMG = false;
+        for (int i = 0; i < 5; ++i)
+            for (int j = 0; j < 5; ++j) {
+                Position act = {pos.i - 2 + i,pos.j - 2 + j}
+                int data_soldier = which_soldier(act.i,act.j);
+                int data_post = post_owner(act.i,act.j);
+                if (data_soldier == -1)
+                    continue;
+                (which_soldier(act.i,act.j) == me() ? ++num_enemics:++num_meus);
+
+            }
+        return ((num_meus < 3 and num_enemics > num_meus) or (num_enemics > 2*num_meus-1));
+    }
+
+    void play_helicopter(int id) {
+
+      // If we can, we throw napalm.
+      Position pos = data(id).pos;
+      if ((data(id).napalm == 0) and (napalm_QuestionMark(pos.i,pos.j))) {
+        command_helicopter(id, NAPALM);
+        return;
+      }
+
 
     virtual void play () {
 
-        int my_id = me();
-        NB_UNITS = matrix();
-        v_soldier = soldiers(my_id);
-        int sold_size = v_soldier.size();
-        v_helicopter = helicopters(my_id);
-        int hel_size = v_helicopter.size();
-
-        for (int i = 0; i < sold_size; ++i) {
-            QP qp;
-            Position sold = data(v_soldier[i]).pos;
-            BFS(sold,qp);
-            cues_soldier.push_back(qp);
-            Position next = cues_soldier[i].front();
-            command_soldier(v_soldier[i],next.i,next.j);
-            }
     }
 
 };
