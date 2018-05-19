@@ -82,31 +82,65 @@ struct PLAYER_NAME : public Player {
         return aux;
     }
 
+
+
+    void which_cities(int id_sold, queue<Position> &q) {
+        vector< pair<Pos, int> > cities(nb_cities());
+
+        for (int i = 0; i < nb_cities(); i++) {
+            Pos min = city(i)[0];
+            for (auto pos : city(i))
+                if (manhattan_distance(unit(ork).pos, pos) < manhattan_distance(unit(ork).pos, min))
+                    min = pos;
+            cities[i] = make_pair(min, manhattan_distance(min, unit(ork).pos) + isla(city(i)));
+        }
+
+            sort(cities.begin(), cities.end(), compPos);
+
+            for (auto p : cities) {
+                if (city_owner(cell(p.first).city_id) != me())
+                q.push(p.first);
+            }
+    }
+
+
+    void which_enemies(int ork, queue<Unit> &q) {
+		vector< pair<Unit, vector<int> > > enemies(0);
+
+		for (int i = 0; i < nb_units(); i++) {
+			if (unit(i).player != me()) {
+				vector<int> temp(3);
+				temp[0] = cell(unit(ork).pos).city_id == -1 ? -1 : cell(unit(i).pos).city_id == cell(unit(ork).pos).city_id;	// same city
+				temp[1] = cell(unit(ork).pos).path_id == -1 ? -1 : cell(unit(i).pos).path_id == cell(unit(ork).pos).path_id;	// same path
+				temp[2] = manhattan_distance(unit(i).pos, unit(ork).pos);														// distance
+				enemies.push_back(make_pair(unit(i), temp));
+			}
+		}
+
+		sort(enemies.begin(), enemies.end(), compEne);
+
+		for (auto p : enemies) {
+			q.push(p.first);
+		}
+	}
+
     //QUIN POST ANAR?
 
     Position which_post (int id) {
         Position sold = data(id).pos;
         //int act_v = v_posts[0].value;
         //int last_v = act_v;
-        Position aux = v_posts[0].pos;
+        Position aux = Position(-1,-1);
         for (int i = 0; i < (int)v_posts.size(); ++i) {
             Position act = v_posts[i].pos;
             if (post_owner(act.i,act.j) != me())
-                if ((distance(sold,act) < distance(sold,aux)))
+                if ((aux.i = -1) or (distance(sold,act) < distance(sold,aux)))
                     aux = act;
         }
-        if (not pos_ok(aux.i,aux.j))
-            aux = v_posts[(rand()%(int)v_posts.size())+1].pos;
         return aux;
     }
 
-    bool parachuter_QuestionMark(int x, int y) {
 
-        if ((what(x,y) == WATER) or (what(x,y) == MOUNTAIN)) return false;
-        if (fire_time(x,y) != 0) return false;
-        if (which_soldier(x,y) != 0) return false;
-        return true;
-    }
 
     //WORTH TIRAR NAPALM?
 

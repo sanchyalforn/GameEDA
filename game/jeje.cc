@@ -26,72 +26,103 @@ struct PLAYER_NAME : public Player {
     static constexpr int I[8] = {-1, -1,  0, 1, 1, 1, 0, 1 };
     static constexpr int J[8] = { 0, -1, -1,-1, 0, 1, 1, 1 };
 
-    using VE = vector <int>;
-    using VVE = vector <VE>;
-    using VC = vector <char>;
-    using VVC = vector <VC>;
-    using QP = queue <Position>;
-    using PP = pair <int,Position>;
-    using PQP = priority_queue <PP, vector <PP>, greater<PP> >;
+    using VE    = vector <int>;
+    using VVE   = vector <VE>;
+    using VC    = vector <char>;
+    using VVC   = vector <VC>;
+    using QP    = queue <Position>;
+    using PP    = pair <int,Position>;
+    //using PQP   = priority_queue <PP, vector <PP>, greater<PP> >;
 
     VE v_soldier;
     VE v_helicopter;
     vector <QP> cues_soldier;
-    VE D;
-    int infinit = 1e9;
+    //VE D;
+    //int infinit = 1e9; //(Pal dijkstra)
+    VVC G;
 
 
-    bool my_soldier(int x, int y, int id) {
-        if (id == 0 or id == -1) return false;
-        return find(v_soldier.begin(),v_soldier.end(),id) != v_soldier.end();
-    }
+    /*------------------
+        RANDOM STUFF
+    ------------------*/
 
-    int ponderacio (int i, int j) {
-        int aux;
-        //TERRENY o FOC
+    void matrix () {
+        G = VVC(MAX,VC(MAX,'X'));
+        for (int i = 0; i < MAX; ++i) {
+            for (int j = 0; j < MAX; ++j) {
+                if (fire_time(i,j) != 0) continue;
+                if (what(i,j) == GRASS) G[i][j] = 'G';
+                else if (what(i,j) == FOREST) G[i][j] = 'F';
+                if (which_soldier(i,j) != 0 and which_soldier(i,j) != me()) G[i][j] = 'S';
+                if (which_post(i,j) != 0)
 
-
-        //ENEMICS
-
-        return aux;
-    }
-
-    void dijkstra(const WGraph& G, int s, vector<double>& d, vector<int>& p) {
-
-        vector<vector <int> > pond(MAX, vector <int>(MAX, infinit));
-        pond[s.i][s.j] = 0;
-        vector<vector <int> > previous(MAX, vector <int>(MAX, -1));
-        VVE visitats(n, false);
-        priority_queue<PP> Q;
-        Q.push(PP(0,Position(pos.i,pos.j)));
-        while (not Q.empty()) {
-            Position u = Q.top().second; Q.pop();
-            if (visitats[u.i][u.j])
-                continue;
-            visitats[u.i][u.j] = true;
-            for (int i = 0; i < 8; ++i) {
-                Position p = a.second;
-                Position act = (u.i+I[i],u.j+J[i])
-                if (not pos_ok(act.i, act.j))
-                    continue;
-                double c = ponderacio(act.i,act.j);
-                if (pond[v] > pond[u] + c) {
-                    pond[v] = pond[u] + c;
-                    previous[v] = u;
-                    Q.push(WArc(pond[v], v));
-                }
             }
         }
     }
 
 
+    /*----------------
+        SOLDIER
+    ----------------*/
 
-  /**
-   * Play method, invoked once per each round.
-   */
+    int manhattan_distance(const Position &p1, const Position &p2) {
+        return abs(p1.i - p2.i) + abs(p1.j - p2.j);
+    }
+
+    Data which_enemy(int ork) {
+        Data enemy;
+        enemy.pos = {-1, -1};
+
+        for (int i = 0; i < nb_units(); i++) {
+            // nearer and (same city or path)
+            if (data(i).player != me() and ((manhattan_distance(unit(i).pos, unit(ork).pos) < manhattan_distance(enemy.pos, unit(ork).pos) and ((cell(unit(i).pos).city_id == cell(unit(ork).pos).city_id) or (cell(unit(i).pos).path_id == cell(unit(ork).pos).path_id))) or enemy.pos.i == -1)) {
+            enemy = unit(i);
+            }
+        }
+
+        return enemy;
+    }
+
+    Pos which_city(int id) {
+        Position aux    = Position(-1,-1);
+        Position sold   = data(id).pos;
+
+        for (int i = 0; i < rows(); i++) {
+            for (int j = 0; j < cols(); j++) {
+
+                // Get Position
+                Position temp = Position(i, j);
+
+                // Check if city (not my property)
+                if (temp.city_id != -1 and city_owner(temp.city_id) != me()) {
+
+                    // Distance
+                    if (aux.i == -1 or (manhattan_distance(temp,sold) < manhattan_distance(temp,aux))) {
+                        aux = temp;
+                    }
+                }
+            }
+        }
+        return aux;
+    }
+
+    /*----------------
+        HELICOPTER
+    ----------------*/
+
+    bool parachuter_QuestionMark(int x, int y) {
+
+        if ((what(x,y) == WATER) or (what(x,y) == MOUNTAIN)) return false;
+        if (fire_time(x,y) != 0) return false;
+        if (which_soldier(x,y) != 0) return false;
+        return true;
+    }
+
+
+
   virtual void play () {
       int my_id = me();
-      vector <Post> v_post = posts();
+
       v_soldier = soldiers(my_id);
       int sold_size = v_soldier.size();
       v_helicopter = helicopters(my_id);

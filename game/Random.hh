@@ -24,7 +24,7 @@ public:
 
 
   //////// STUDENTS DO NOT NEED TO READ BELOW THIS LINE ////////
-  
+
 
 private:
 
@@ -59,7 +59,7 @@ private:
     next_rnd();
     return double(rnd_seed)/RANDOM_MOD;
   }
-  
+
 };
 
 
