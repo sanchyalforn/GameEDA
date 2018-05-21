@@ -23,8 +23,11 @@ struct PLAYER_NAME : public Player {
           GLOBALS
     ------------------*/
 
-    static constexpr int I[8] = {-1, -1,  0, 1, 1, 1, 0, 1 };
-    static constexpr int J[8] = { 0, -1, -1,-1, 0, 1, 1, 1 };
+    static constexpr int I[8]  = {-1, -1,  0,  1, 1, 1, 0, 1 };
+    static constexpr int J[8]  = { 0, -1, -1, -1, 0, 1, 1, 1 };
+    static constexpr int HI[4] = { 1,  0, -1,  0};
+    static constexpr int HJ[4] = { 0,  1,  0, -1};
+
 
     using VE    =   vector <int>;
     using VVE   =   vector <VE>;
@@ -137,7 +140,7 @@ struct PLAYER_NAME : public Player {
                             q.push({seg,route});
                             visitats[seg.i][seg.j] = true;
                     }
-                    
+
                     if (seg.i == f_pos.i  && seg.j == f_pos.j){
                         qp = route;
                         trobat = true;
@@ -146,7 +149,6 @@ struct PLAYER_NAME : public Player {
             }
         }
     }
-
 
 
     /*----------------
@@ -163,6 +165,26 @@ struct PLAYER_NAME : public Player {
     * * * * *
 
     */
+
+    //dijkstra weighting the direction where is the helicopter looking to
+    void dijkstra(const Position &inicial, const Position &final) {
+        VVE distance (MAX,VE(MAX,INFINIT));
+        distance[s.i][s.j] = 0;
+        VVE  p(MAX,VE(MAX.-1));
+        VVE visitats (MAX,VE(MAX, false));
+        priority_queue <PP, vector<PP>,greater<PP> > Q;
+        Q.push(PP(0,Position(s.i,s.j)));
+        while (!Q.empty()) {
+            Position q = Q.top().second; Q.pop;
+            if (not visitats[q.i][q.j])
+                visiats[q.i][q.j] = true;
+            for (int i = 0; i < 4; ++i) {
+                Position aux = sum(q,Position(HI[i],J[i]));
+                
+            }
+        }
+
+    }
 
     bool parachuter_QuestionMark(int x, int y) {
 
@@ -248,7 +270,8 @@ struct PLAYER_NAME : public Player {
 
 constexpr int PLAYER_NAME::I[8];
 constexpr int PLAYER_NAME::J[8];
-
+constexpr int PLAYER_NAME::HI[4];
+constexpr int PLAYER_NAME::HJ[4];
 /**
  * Do not modify the following line.
  */
