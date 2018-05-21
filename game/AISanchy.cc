@@ -2,8 +2,8 @@
 
 
 /**
- * Write the name of your player and save this file
- * with the same name and .cc extension.
+ * Write the name of your player && save this file
+ * with the same name && .cc extension.
  */
 #define PLAYER_NAME Creeper
 
@@ -42,49 +42,8 @@ struct PLAYER_NAME : public Player {
     VIQ             v_cues;
 
     /*------------------
-        RANDOM STUFF
+        R&&OM STUFF
     ------------------*/
-    /*
-    void write_matrix() {
-        for (int i = 0; i < MAX; ++i) {
-            for (int j = 0; j < MAX; ++j) {
-                cout << G[i][j];
-            }
-            cout << endl;
-        }
-        cout << endl;
-        cout << endl;
-    }
-
-    int matrix_Dijkstra () {
-        int s = 0;
-        G = VVC(MAX,VC(MAX,'X'));
-        for (int i = 0; i < MAX; ++i) {
-            for (int j = 0; j < MAX; ++j) {
-                if (fire_time(i,j) != 0) continue;
-                if (what(i,j) == GRASS) G[i][j] = 'G';
-                else if (what(i,j) == FOREST) G[i][j] = 'F';
-                if (which_soldier(i,j) != 0) ++s;
-                if ((which_soldier(i,j) != 0) and (data(which_soldier(i,j)).player != me())) G[i][j] = 'S';
-                if ((post_value(i,j) != -2) and (post_value(i,j) != me())) G[i][j] = 'P';
-            }
-        }
-        return s;
-    }
-    */
-
-    int matrix_BFS () {
-        int s = 0;
-        G = VVC(MAX,VC(MAX,'X'));
-        for (int i = 0; i < MAX; ++i) {
-            for (int j = 0; j < MAX; ++j) {
-                if (fire_time(i,j) != 0) continue;
-                if ((what(i,j) == GRASS) or (what(i,j) == FOREST)) G[i][j] = '.';
-                if ((post_value(i,j) != -2) and (post_value(i,j) != me())) G[i][j] = 't';
-            }
-        }
-        return s;
-    }
 
     int manhattan_distance(const Position &p1, const Position &p2) {
         return abs(p1.i - p2.i) + abs(p1.j - p2.j);
@@ -93,10 +52,6 @@ struct PLAYER_NAME : public Player {
     Position sum(const Position &p1, const Position &p2) {
         return Position(p1.i + p2.i, p1.j + p2.j);
     }
-
-    /*----------------
-        SOLDIER
-    ----------------*/
 
     Position which_post(int id) {
         Position aux    = Position(-1,-1);
@@ -107,12 +62,11 @@ struct PLAYER_NAME : public Player {
 
                 // Get Position
                 Position temp = Position(i, j);
-
                 // Check if city (not my property)
-                if ((post_owner(temp.i,temp.j) != -1) and (post_owner(temp.i,temp.j) != me())) {
+                if ((post_owner(temp.i,temp.j) != -2) && (post_owner(temp.i,temp.j) != me())) {
 
                     // Distance
-                    if (aux.i == -1 or (manhattan_distance(temp,sold) < manhattan_distance(temp,aux))) {
+                    if (aux.i == -1 or (manhattan_distance(temp,sold) < manhattan_distance(sold,aux))) {
                         aux = temp;
                     }
                 }
@@ -121,9 +75,28 @@ struct PLAYER_NAME : public Player {
         return aux;
     }
 
+    /*----------------
+        SOLDIER
+    ----------------*/
+
     bool heal_stuff (const Position &ally, const Position &enemy) {
         int Enemy_HP = data(which_soldier(enemy.i,enemy.j)).life;
         int Ally_HP  = data(which_soldier(ally.i,ally.j)).life;
+
+        //same land
+        if (what(ally.i,ally.j) == what(enemy.i,enemy.j)) {
+            return Ally_HP > Enemy_HP;
+        }
+
+        //GRASS vs FOREST
+        if (what(ally.i,ally.j)  > what(enemy.i,enemy.j)) {
+            
+        }
+        //FOREST vs GRASS
+        if (what(ally.i,ally.j)  < what(enemy.i,enemy.j)) {
+
+        }
+
 
         if (Ally_HP > Enemy_HP       && (what(ally.i, ally.j) == what(enemy.i,enemy.j) || what(ally.i,ally.j) < what(enemy.i,enemy.j)))
             return true;
@@ -141,24 +114,23 @@ struct PLAYER_NAME : public Player {
         q.push({i_pos,queue<Position>()});
         bool trobat = false;
         visitats[i_pos.i][i_pos.j] = true;
-        while (not q.empty() and not trobat) {
-            pair <Position, QP > p = q.front(); q.pop();
-            for (int i = 0; i < 8 and not trobat; ++i) {
 
+        while (not q.empty() && not trobat) {
+            pair <Position, QP > p = q.front(); q.pop();
+
+            for (int i = 0; i < 8 && not trobat; ++i) {
                 QP route = p.second;
                 Position seg = sum(p.first,Position(I[i],J[i]));
                 if (not visitats[seg.i][seg.j]) {
                     if (pos_ok(seg) && what(seg.i,seg.j) != MOUNTAIN
                         && what(seg.i,seg.j) != WATER
-                        && fire_time(seg.i,seg.j) == 0
-                        && (which_soldier(seg.i,seg.j) == 0
-                        || data(which_soldier(seg.i,seg.j)).player != me()
-                        && heal_stuff(seg))) {
+                        && fire_time(seg.i,seg.j) <= route.size()
+                        && (which_soldier(seg.i,seg.j) == 0 || (data(which_soldier(seg.i,seg.j)).player != me() &&  heal_stuff(p.first,seg)))) {
                             route.push(Position(seg.i,seg.j));
                             q.push({seg,route});
                             visitats[seg.i][seg.j] = true;
                     }
-                    if (seg.i == f_pos.i  and seg.j == f_pos.j){
+                    if (seg.i == f_pos.i  && seg.j == f_pos.j){
                         qp = route;
                         trobat = true;
                     }
@@ -166,40 +138,6 @@ struct PLAYER_NAME : public Player {
             }
         }
     }
-
-    /*QP BFS_X(int f, int c) {
-
-        VVE dist(MAX,VE(MAX,-1));
-
-        dist[f][c] = 0;
-        QP Q;
-        QP qp;
-        Q.push(Position(f,c));
-        int d = 0;
-        while (not Q.empty()) {
-            Position v = Q.front();
-            Q.pop();
-            int x = v.i;
-            int y = v.j;
-
-            if (G[x][y] == 't' and d < dist[x][y]){
-                d = dist[x][y];
-                qp = Q;
-            }
-
-            if (G[x][y] == '.' or G[x][y] == 't') {
-                G[x][y] = 'X';
-                for (int i = 0; i < 8; ++i) {
-                    Position next = {x+I[i],y+J[i]};
-                    if (pos_ok(next) and G[next.i][next.j] != 'X') {
-                        dist[x][y] = d + 1;
-                        Q.push(Position(x,y));
-                    }
-                }
-            }
-        }
-        return qp;
-    }*/
 
 
 
@@ -240,16 +178,16 @@ struct PLAYER_NAME : public Player {
                 (which_soldier(act.i,act.j) == me() ? ++num_enemics : ++num_meus);
 
             }
-        return ((num_meus < 3 and num_enemics > num_meus)
-        or (num_enemics > 2*num_meus-1)
-        or (num_meus    < 2 and post));
+        return ((num_meus < 3 && num_enemics > num_meus)
+        ||      (num_enemics > 2*num_meus-1)
+        ||      (num_meus    < 2 && post));
     }
 
     void play_helicopter(int id) {
 
         // If we can, we throw napalm.
         Position pos = data(id).pos;
-        if ((data(id).napalm == 0) and (napalm_QuestionMark(pos))) {
+        if ((data(id).napalm == 0) && (napalm_QuestionMark(pos))) {
             command_helicopter(id, NAPALM);
             return;
         }
@@ -261,11 +199,12 @@ struct PLAYER_NAME : public Player {
         // We get the data of the helicopter...
         Data in = data(helicopter_id);
         for (int i = 0; i < 5; ++i)
-            for(int j = 0; j < 5; ++j)
-                if ((not data(helicopter_id).parachuters.empty())
+            for(int j = 0; j < 5; ++j){
+                if ((not in.parachuters.empty())
                 && (parachuter_QuestionMark(i,j))
                 && (pos_ok(i,j)))
                     command_parachuter(i,j);
+            }
     }
 
       /*----------------
@@ -277,11 +216,15 @@ struct PLAYER_NAME : public Player {
         v_soldier = soldiers(me());
         v_helicopter = helicopters(me());
         v_cues = VIQ((int)v_soldier.size());
-        cerr << "kitipassa" << endl;
+
         for (int i = 0; i < (int)v_soldier.size(); ++i) {
             Position pos_obj = which_post(v_soldier[i]);
             Position pos_act = data(v_soldier[i]).pos;
             v_cues[i].first = v_soldier[i];
+            //cerr << "id: " << v_cues[i].first;
+            //cerr << " pos act: " << pos_act.i << " " << pos_act.j;
+            //cerr << " pos_obj: " << pos_obj.i << " " << pos_obj.j << endl;
+
             BFS(pos_act, pos_obj,v_cues[i].second);
 
             Position next = v_cues[i].second.front(); v_cues[i].second.pop();
@@ -291,9 +234,9 @@ struct PLAYER_NAME : public Player {
             if (not data(v_helicopter[i]).parachuters.empty())
                 throw_parachuter(v_helicopter[i]);
             play_helicopter(v_helicopter[i]);
+            if (data[v_helicopter[i]])
         }*/
     }
-
 };
 
 constexpr int PLAYER_NAME::I[8];
