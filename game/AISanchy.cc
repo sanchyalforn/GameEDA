@@ -124,7 +124,7 @@ struct PLAYER_NAME : public Player {
                 if (not visitats[seg.i][seg.j]) {
                     if (pos_ok(seg) && what(seg.i,seg.j) != MOUNTAIN
                         && what(seg.i,seg.j) != WATER
-                        && (fire_time(seg.i,seg.j) <= route.size())
+                        && fire_time(seg.i,seg.j) <= (int)route.size()
                         && (which_soldier(seg.i,seg.j) == 0 || (data(which_soldier(seg.i,seg.j)).player != me() &&  heal_stuff(p.first,seg)))) {
                             route.push(Position(seg.i,seg.j));
                             q.push({seg,route});
