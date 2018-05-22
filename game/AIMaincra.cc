@@ -29,12 +29,7 @@ struct PLAYER_NAME : public Player {
     static constexpr int J[8]  = { 0, -1, -1, -1, 0, 1, 1, 1 };
     static constexpr int HI[4] = { 1,  0, -1,  0};
     static constexpr int HJ[4] = { 0,  1,  0, -1};
-/*
-    const int I[8]  = {-1, -1,  0,  1, 1, 1, 0, 1 };
-    const int J[8]  = { 0, -1, -1, -1, 0, 1, 1, 1 };
-    const int HI[4] = { 1,  0, -1,  0};
-    const int HJ[4] = { 0,  1,  0, -1};
-*/
+
     // --------------------------------------------
 
     const int S       = 0; //DOWN
@@ -79,7 +74,7 @@ struct PLAYER_NAME : public Player {
 
     void BFS_soldier (const Position &i_pos,const Position &f_pos, QP &qp, int id){
         visitats = VVE (MAX, VE (MAX, false));
-        queue <pair <Position,queue<Position> > > q;
+        queue <pair <Position,queue<Position>>> q;
         q.push({i_pos,queue<Position>()});
         bool trobat = false;
         visitats[i_pos.i][i_pos.j] = true;
@@ -94,8 +89,7 @@ struct PLAYER_NAME : public Player {
                     if (pos_ok(seg)
                     && can_I_QuestionMark(seg,id)
                     && fire_time(seg.i,seg.j) <= (int)route.size()
-                    && (which_soldier(seg.i,seg.j) == 0
-                    || data(which_soldier(seg.i,seg.j)).player != me())) {
+                    && (which_soldier(seg.i,seg.j) == 0)) {
                         route.push(Position(seg.i,seg.j));
                         q.push({seg,route});
                         visitats[seg.i][seg.j] = true;
@@ -115,6 +109,7 @@ struct PLAYER_NAME : public Player {
     }
 */
     bool can_I_QuestionMark(const Position& pos, int id) {
+        if (!pos_ok(pos)) return false;
         if (data(id).type == HELICOPTER)
             return (what(pos.i,pos.j) != MOUNTAIN && which_helicopter(pos.i,pos.j) == 0);
 
@@ -158,21 +153,22 @@ struct PLAYER_NAME : public Player {
         while (not Q.empty() && !trobat) {
 
             pair <Position,queue <PP>> p = Q.front(); Q.pop();
-            for (int i = 0; i < 4; ++i) {
+            for (int i = 0; i < 4 && !trobat; ++i) {
 
-                queue <PP> route = p.second;
-                int ori = p.second.front().first;
+                queue <PP> route = p.second;   //queue to actual pos
+                int ori = route.front().first; //actual orientation
                 Position next = sum(p.first,Position(HI[i],HJ[i]));
 
                 if (! visitats[next.i][next.j]) {
-
                     if (pos_ok(next)
                     && can_I_QuestionMark(next,id)
                     && hel_can_move(p.first,next, id)) {
                         int new_ori = new_orientation(route.front().second,next);
 
-                        if (ori != new_ori)
-                            route.push({new_ori,route.front().second});
+                        if (ori != new_ori){
+                            route.push({new_ori,route.front().second}); //Same pos but diff ori
+                            route.push({new_ori,next});
+                        }
 
                         else
                             route.push({ori,next});
@@ -283,8 +279,7 @@ struct PLAYER_NAME : public Player {
                 int aux_i = pos.i + i;
                 int aux_j = pos.i + j;
                 Position aux = Position(aux_i,aux_j);
-                if (pos_ok(aux))
-                    if (!can_I_QuestionMark(aux,id)) return false;
+                if (!can_I_QuestionMark(aux,id)) return false;
             }
         return true;
     }
@@ -295,8 +290,7 @@ struct PLAYER_NAME : public Player {
                 int aux_i = pos.i + i;
                 int aux_j = pos.i + j;
                 Position aux = Position(aux_i,aux_j);
-                if (pos_ok(aux))
-                    if (!can_I_QuestionMark(aux,id)) return false;
+                if (!can_I_QuestionMark(aux,id)) return false;
             }
         return true;
     }
@@ -307,8 +301,7 @@ struct PLAYER_NAME : public Player {
                 int aux_i = pos.i + i;
                 int aux_j = pos.i + j;
                 Position aux = Position(aux_i,aux_j);
-                if (pos_ok(aux))
-                    if (!can_I_QuestionMark(aux,id)) return false;
+                if (!can_I_QuestionMark(aux,id)) return false;
             }
         return true;
     }
@@ -319,8 +312,7 @@ struct PLAYER_NAME : public Player {
                 int aux_i = pos.i + i;
                 int aux_j = pos.i + j;
                 Position aux = Position(aux_i,aux_j);
-                if (pos_ok(aux))
-                    if (!can_I_QuestionMark(aux,id)) return false;
+                if (!can_I_QuestionMark(aux,id)) return false;
             }
         return true;
     }
