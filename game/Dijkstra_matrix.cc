@@ -10,7 +10,7 @@ Mat G (w, vector <int> (w));
 Mat d (w,vector <int> (w,1000000));
 
 template <class T> struct ord {
-	bool operator() (const T& a, const T& b) const {return d[a.first][a.second] > d[b.first][b.second];} 
+	bool operator() (const T& a, const T& b) const {return d[a.first][a.second] > d[b.first][b.second];}
 	typedef T first_argument_type;
 	typedef T second_argument_type;
 	typedef bool result_type;
@@ -35,7 +35,7 @@ void dijkstra(Pos s, vector<vector<Pos> > &p){
 					Q.push(a);
 				}
 			}
-			 
+
 			--a.second;
 	/*o . .*/	if(a.first >= 0 && a.second >= 0){
 	/*. x .*/		if(d[a.first][a.second] > d[u.first][u.second] + mat[a.first][a.second]){
@@ -44,8 +44,8 @@ void dijkstra(Pos s, vector<vector<Pos> > &p){
 					Q.push(a);
 				}
 			}
-			
-			++a.first;	
+
+			++a.first;
 	/*. o .*/	if(a.second >= 0){
 	/*. x .*/		if(d[a.first][a.second] > d[u.first][u.second] + mat[a.first][a.second]){
 	/*. . .*/			d[a.first][a.second] = d[u.first][u.second] + mat[a.first][a.second];
@@ -53,7 +53,7 @@ void dijkstra(Pos s, vector<vector<Pos> > &p){
 					Q.push(a);
 				}
 			}
-			
+
 			++a.first;
 	/*. . o*/	if(a.first < w && a.second >= 0){
 	/*. x .*/		if(d[a.first][a.second] > d[u.first][u.second] + mat[a.first][a.second]){
@@ -62,7 +62,7 @@ void dijkstra(Pos s, vector<vector<Pos> > &p){
 					Q.push(a);
 				}
 			}
-			
+
 			++a.second;
 	/*. . .*/	if(a.first < w){
 	/*. x o*/		if(d[a.first][a.second] > d[u.first][u.second] + mat[a.first][a.second]){
@@ -70,8 +70,8 @@ void dijkstra(Pos s, vector<vector<Pos> > &p){
 					p[a.first][a.second] = u;
 					Q.push(a);
 				}
-			}	
-					
+			}
+
 			++a.second;
 	/*. . .*/	if(a.first < w && a.second < w){
 	/*. x .*/		if(d[a.first][a.second] > d[u.first][u.second] + mat[a.first][a.second]){
@@ -80,7 +80,7 @@ void dijkstra(Pos s, vector<vector<Pos> > &p){
 					Q.push(a);
 				}
 			}
-			
+
 			--a.first;
 	/*. . .*/	if(a.second < w){
 	/*. x .*/		if(d[a.first][a.second] > d[u.first][u.second] + mat[a.first][a.second]){
@@ -88,8 +88,8 @@ void dijkstra(Pos s, vector<vector<Pos> > &p){
 					p[a.first][a.second] = u;
 					Q.push(a);
 				}
-			}	
-					
+			}
+
 			--a.first;
 	/*. . .*/	if(a.first >= 0 && a.second < w){
 	/*. x .*/		if(d[a.first][a.second] > d[u.first][u.second] + mat[a.first][a.second]){
@@ -97,7 +97,7 @@ void dijkstra(Pos s, vector<vector<Pos> > &p){
 					p[a.first][a.second] = u;
 					Q.push(a);
 				}
-			}			
+			}
         	}
 	}
 }
@@ -110,7 +110,7 @@ int main(){
 	djikstra(Pos(0,0),y);
 	cout << endl;
 	for(int i = 0; i<w; ++i){
-		for(int j = 0; j<w; ++j) 
+		for(int j = 0; j<w; ++j)
 			cout << d[i][j] << ' ';
 		cout << endl;
 	}
