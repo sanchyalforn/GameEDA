@@ -37,7 +37,7 @@ struct PLAYER_NAME : public Player {
     const int N       = 2; //UP
     const int W       = 3; //LEFT
 
-    //const int INFINIT = 1e9;
+    const int INFINIT = 1e9;
 
     // --------------------------------------------
 
@@ -70,7 +70,21 @@ struct PLAYER_NAME : public Player {
     Position sum(const Position &p1, const Position &p2) {
         return Position(p1.i + p2.i, p1.j + p2.j);
     }
-
+/*
+    void matrix_Dijkstra () {
+        G = VVE(MAX,VE(MAX,INFINIT));
+        for (int i = 0; i < MAX; ++i) {
+            for (int j = 0; j < MAX; ++j) {
+                if (fire_time(i,j) != 0) continue;
+                if (what(i,j) == GRASS) G[i][j] = 3;
+                else if (what(i,j) == FOREST) G[i][j] = 1;
+                if (which_soldier(i,j) != 0) ++s;
+                if ((which_soldier(i,j) != 0) && (data(which_soldier(i,j)).player != me()) && ) G[i][j] = 2;
+                if ((post_value(i,j) != -2) && (post_value(i,j) != me())) G[i][j] = 'P';
+            }
+        }
+    }
+*/
 
     void BFS_soldier (const Position &i_pos,const Position &f_pos, QP &qp, int id){
         visitats = VVE (MAX, VE (MAX, false));
@@ -102,6 +116,10 @@ struct PLAYER_NAME : public Player {
                 }
             }
         }
+    }
+
+    void Dijkstra (const Position &i_pos, const Position &f_pos, QP &qp, int id) {
+
     }
 /*
     int what(const Position& pos) {
@@ -145,7 +163,7 @@ struct PLAYER_NAME : public Player {
     void BFS_helicopter (const Position &inici, const Position &meta, queue<PP>&qp, int id) {
         visitats = VVE(MAX,VE(MAX,false));
         queue <pair<Position,queue <PP>>> Q;
-        queue <PP> aux; aux.push({data(id).orientation,Position()});
+        queue <PP> aux; aux.push({data(id).orientation,inici});
         Q.push({inici,aux});
         bool trobat = false;
         visitats[inici.i][inici.j] = true;
@@ -154,28 +172,29 @@ struct PLAYER_NAME : public Player {
 
             pair <Position,queue <PP>> p = Q.front(); Q.pop();
             for (int i = 0; i < 4 && !trobat; ++i) {
-
                 queue <PP> route = p.second;   //queue to actual pos
                 int ori = route.front().first; //actual orientation
                 Position next = sum(p.first,Position(HI[i],HJ[i]));
-
+                cerr << "pos.i: " << route.front().second.i << " pos.j: " << route.front().second.j << endl;
+                cerr << "next.i: " << next.i << " next.j: " << next.j << endl;
                 if (! visitats[next.i][next.j]) {
                     if (pos_ok(next)
                     && can_I_QuestionMark(next,id)
                     && hel_can_move(p.first,next, id)) {
                         int new_ori = new_orientation(route.front().second,next);
-
+                        cerr << "new_ori: " << new_ori << endl;
                         if (ori != new_ori){
                             route.push({new_ori,route.front().second}); //Same pos but diff ori
                             route.push({new_ori,next});
+                            cerr << "ori != new_ori: i: " << next.i << " j: " << next.j << endl;
                         }
 
                         else
                             route.push({ori,next});
 
-                    Q.push({next,route});
-                    visitats[next.i][next.j] = true;
-                }
+                        Q.push({next,route});
+                        visitats[next.i][next.j] = true;
+                    }
 
                     if (next.i == meta.i && next.j == meta.j){
                         qp = route;
@@ -216,7 +235,7 @@ struct PLAYER_NAME : public Player {
         return true;
     }
 
-    bool napalm_QuestionMark(Position pos) {
+    bool napalm_QuestionMark(const Position &pos) {
         int num_enemics = 0;
         int num_meus = 0;
         bool post = false;
@@ -327,12 +346,17 @@ struct PLAYER_NAME : public Player {
         if (! data(id).parachuters.empty() && parachuter_QuestionMark(data(id).pos))
             throw_parachuter(id);
 
-        Position obj = which_post(id);
+        //Position obj = which_post(id);
         Position act = data(id).pos;
-        BFS_helicopter(act,obj,qp,id);
+        int c = random(1, 5);
+        int ori = data(id).orientation;
+        Position next = sum(act,Position(I[ori],J[ori]));
+        if (what(next.i,next.j) == MOUNTAIN or !hel_can_move(act,next,id)) c = COUNTER_CLOCKWISE;
+        command_helicopter(id, c == 1 ? COUNTER_CLOCKWISE : FORWARD2);
+        /*BFS_helicopter(act,obj,qp,id);
         cerr << "obj_i: "  << obj.i << " obj_j: " << obj.j << endl;
         cerr << "next_i: " << qp.front().second.i << " next_j: " <<  qp.front().second.j << endl;
-        cerr << "orientation: " <<  data(id).orientation << "orien_next" << qp.front().first << endl;
+        cerr << "orientation: " <<  data(id).orientation << "orien_next" << qp.front().first << endl;*/
     }
 
     void throw_parachuter(int helicopter_id) {
@@ -347,12 +371,13 @@ struct PLAYER_NAME : public Player {
             }
     }
 
-    void move_helicopter (int id,int i) {
+    /*void move_helicopter (int id,int i) {
         int code;
-        PP move = v_cues_h[i].front(); v_cues_h[i].pop();
+        PP move = v_cues_h[i].front();
         int act_ori = data(id).orientation;
 
         if (act_ori == move.first) {
+            v_cues_h[i].pop();
             if (v_cues_h[i].front().first == act_ori){
                 code = FORWARD2;
                 v_cues_h[i].pop();
@@ -385,7 +410,7 @@ struct PLAYER_NAME : public Player {
 
         }
         command_helicopter(id, code);
-    }
+    }*/
 
     /*----------------
           MAIN
@@ -406,8 +431,15 @@ struct PLAYER_NAME : public Player {
 
         for (int i = 0; i < (int)v_helicopter.size();++i){
             play_helicopter(v_helicopter[i],v_cues_h[i]);
-            move_helicopter(v_helicopter[i], i);
+            //move_helicopter(v_helicopter[i], i);
         }
+    /*    if (round() == 0) {
+            Position act = data(v_helicopter[0]).pos;
+            Position obj = which_post(v_helicopter[0]);
+            queue <PP> a;
+            BFS_helicopter(act,obj,a,v_helicopter[0]);
+        }
+        */
     }
 
 };
