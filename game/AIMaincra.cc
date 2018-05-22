@@ -173,10 +173,9 @@ struct PLAYER_NAME : public Player {
                         else
                             route.push({ori,next});
 
-                        Q.push({next,route});
-                        visitats[next.i][next.j] = true;
-
-                    }
+                    Q.push({next,route});
+                    visitats[next.i][next.j] = true;
+                }
 
                     if (next.i == meta.i && next.j == meta.j){
                         qp = route;
