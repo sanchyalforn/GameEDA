@@ -137,7 +137,6 @@ struct PLAYER_NAME : public Player {
         if (HI[1] ==  x.i && HJ[1] == x.j) return 1; //RIGHT
         if (HI[2] ==  x.i && HJ[2] == x.j) return 2; //UP
                                            return 3; //LEFT
-
     }
 
     bool hel_can_move(const Position &a, const Position &b, int id) {
@@ -180,7 +179,6 @@ struct PLAYER_NAME : public Player {
 
                         Q.push({next,route});
                         visitats[next.i][next.j] = true;
-
 
                     }
 
