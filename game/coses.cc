@@ -25,10 +25,10 @@ struct PLAYER_NAME : public Player {
 
     static constexpr int I[8]  = {-1, -1,  0,  1, 1, 1, 0, 1 };
     static constexpr int J[8]  = { 0, -1, -1, -1, 0, 1, 1, 1 };
-    static constexpr int HI[4] = { 1,  0, -1,  0};
-    static constexpr int HJ[4] = { 0,  1,  0, -1};
+    static constexpr int HI[4] = { -1,  0, 1,  0};
+    static constexpr int HJ[4] = {  0,  1, 0, -1};
 
-
+// --------------------------------------------
     using VE    =   vector <int>;
     using VVE   =   vector <VE>;
     using VC    =   vector <char>;
@@ -37,6 +37,8 @@ struct PLAYER_NAME : public Player {
     using PP    =   pair <int,Position>;
     using VIQ   =   vector <pair <Position,QP>>;
 
+// --------------------------------------------
+
     VE              v_soldier;
     VE              v_helicopter;
     vector <Post>   v_posts;
@@ -44,10 +46,31 @@ struct PLAYER_NAME : public Player {
     VVE             visitats;
     VIQ             v_cues;
 
+// --------------------------------------------
+
+    const int N       = 2;
+    const int S       = 0;
+    const int E       = 1;
+    const int W       = 3;
+    const int INFINIT = 1e9;
+
+
     /*------------------
         R&&OM STUFF
     ------------------*/
+/*
 
+    template <class Position> struct less : binary_function <Position,Position,bool> {
+        bool operator() (const Position& x, const Position& y) const {if (x.i == y.i) return x.j < y.j; else return (x.i < y.i)}
+    };
+
+    class cmp {
+        bool operator() (pair<...> p1, pair<...> p2) {
+            if (p1.first != p2.first) return p1.first<p2.first;
+            return ..;//el que triis fer
+        }
+    };
+*/
     int manhattan_distance(const Position &p1, const Position &p2) {
         return abs(p1.i - p2.i) + abs(p1.j - p2.j);
     }
@@ -76,6 +99,21 @@ struct PLAYER_NAME : public Player {
             }
         }
         return aux;
+    }
+
+    int weight(int ori, const Position &pos) {
+        if (pos.i == -1)
+            return ori == N ? 1 : 2;;
+
+        if (pos.i ==  1)
+            return ori == S ? 1 : 2;
+
+        if (pos.j ==  1)
+            return ori == E ? 1 : 2;
+
+        if (pos.j == -1)
+            return ori == W ? 1 : 2;
+
     }
 
     //is a post being the objective or some of our soldier?
@@ -166,25 +204,73 @@ struct PLAYER_NAME : public Player {
 
     */
 
+    int new_orientation(const Position &pos) {
+        if (pos.i ==  1) return S;
+        if (pos.i == -1) return N;
+        if (pos.j ==  1) return E;
+        if (pos.j == -1) return W;
+    }
+
+
+/*
+
     //dijkstra weighting the direction where is the helicopter looking to
-    void dijkstra(const Position &inicial, const Position &final) {
-        VVE distance (MAX,VE(MAX,INFINIT));
-        distance[s.i][s.j] = 0;
-        VVE  p(MAX,VE(MAX.-1));
+    void dijkstra_hel(const Position &inicial, const Position &s, const Position &final, vector <Position> &v, int id) {
+        priority_queue< PP, vector< PP >, greater<PP> > Q;
+        VVE costs (MAX,VE(MAX,INFINIT));
+        costs[s.i][s.j] = 0;
         VVE visitats (MAX,VE(MAX, false));
-        priority_queue <PP, vector<PP>,greater<PP> > Q;
         Q.push(PP(0,Position(s.i,s.j)));
         while (!Q.empty()) {
-            Position q = Q.top().second; Q.pop;
+            Position q = Q.top().second; Q.pop();
+            int ori = data(id).orientation;
             if (not visitats[q.i][q.j])
-                visiats[q.i][q.j] = true;
+                visitats[q.i][q.j] = true;
             for (int i = 0; i < 4; ++i) {
                 Position aux = sum(q,Position(HI[i],J[i]));
-                
+                if (pos_ok(aux)) {
+                    int c = weight(ori, Position(I[i],J[i]));
+                    if (costs[aux.i][aux.j] > costs[q.i][q.j] + c) {
+                        costs[aux.i][aux.j] = costs[q.i][q.j] + c;
+                        Q.push(PP(costs[aux.i][aux.j],aux));
+                        v.push_back(aux);
+                    }
+                }
             }
         }
-
     }
+*/
+
+    /*int search_algorithm_helicopter (const Position &p, int id, queue <Position> &q) {
+        visitats = VVE(MAX,VE(MAX,false));
+        QP Q;
+        bool found = 0;
+        visitats[p.i][p.j] = true;
+        Q.push(p);
+
+        while (! Q.empty()) {
+            Position q = Q.front(); Q.pop();
+            int ori = data(id).orientation;
+            for (int i = 0; i < 4; ++i) {
+                Position p = sum(q,Position(HI[i],HJ[i]));
+                if (pos_ok(p)) {
+                    if (!visitats[p.i][p.j] && which_helicopter(p.i,p.j)!= -1 && which_helicopter(p.i,p.j) != me()) {
+                        visitats[p.i][p.j] = 1;
+                        Q.push(p);
+                    }
+
+                }
+            }
+
+
+            for (int i = 0; i < 4; ++i) {
+                Position p = sum(q,Position(HI[i],HJ[i]));
+                if (which_post(p) != 0 && which_post(p) != me()) {
+                }
+            }
+        }
+        return -1;
+    }*/
 
     bool parachuter_QuestionMark(int x, int y) {
 
@@ -204,9 +290,9 @@ struct PLAYER_NAME : public Player {
                 int data_soldier = which_soldier(act.i,act.j);
                 int owner_post = post_owner(act.i,act.j);
                 if (data_soldier <= -1) continue;
-                if (owner_post != -1 && !post_being_objective(Position(i,j))) post = true;
+                if (owner_post != -1 && !post_being_objective(Position(i,j)))
+                    post = true;
                 (which_soldier(act.i,act.j) == me() ? ++num_enemics : ++num_meus);
-
             }
         return ((num_meus < 3 && num_enemics > num_meus)
         ||      (num_enemics  >  2*num_meus-1)
@@ -224,20 +310,10 @@ struct PLAYER_NAME : public Player {
         }
         //Make function for helicopter
 
-        command_helicopter(id, CONTROL);
+        //command_helicopter(id, CONTROL);
     }
 
-    void throw_parachuter(int helicopter_id) {
-        // We get the data of the helicopter...
-        Data in = data(helicopter_id);
-        for (int i = 0; i < 5; ++i)
-            for(int j = 0; j < 5; ++j){
-                if ((not in.parachuters.empty())
-                && (parachuter_QuestionMark(i,j))
-                && (pos_ok(i,j)))
-                    command_parachuter(i,j);
-            }
-    }
+
 
       /*----------------
             MAIN
