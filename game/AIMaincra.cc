@@ -25,13 +25,16 @@ struct PLAYER_NAME : public Player {
           GLOBALS
     ------------------*/
 
-    //static constexpr int
-
+    static constexpr int I[8]  = {-1, -1,  0,  1, 1, 1, 0, 1 };
+    static constexpr int J[8]  = { 0, -1, -1, -1, 0, 1, 1, 1 };
+    static constexpr int HI[4] = { 1,  0, -1,  0};
+    static constexpr int HJ[4] = { 0,  1,  0, -1};
+/*
     const int I[8]  = {-1, -1,  0,  1, 1, 1, 0, 1 };
     const int J[8]  = { 0, -1, -1, -1, 0, 1, 1, 1 };
     const int HI[4] = { 1,  0, -1,  0};
     const int HJ[4] = { 0,  1,  0, -1};
-
+*/
     // --------------------------------------------
 
     const int S       = 0; //DOWN
@@ -87,7 +90,7 @@ struct PLAYER_NAME : public Player {
             for (int i = 0; i < 8 && !trobat; ++i) {
                 QP route = p.second;
                 Position seg = sum(p.first,Position(I[i],J[i]));
-                    if (not visitats[seg.i][seg.j]) {
+                    if (! visitats[seg.i][seg.j]) {
                     if (pos_ok(seg)
                     && can_I_QuestionMark(seg,id)
                     && fire_time(seg.i,seg.j) <= (int)route.size()
@@ -133,7 +136,7 @@ struct PLAYER_NAME : public Player {
         if (HI[0] ==  x.i && HJ[0] == x.j) return 0; //DOWN
         if (HI[1] ==  x.i && HJ[1] == x.j) return 1; //RIGHT
         if (HI[2] ==  x.i && HJ[2] == x.j) return 2; //UP
-        return 3; //LEFT
+                                           return 3; //LEFT
 
     }
 
@@ -148,36 +151,45 @@ struct PLAYER_NAME : public Player {
     void BFS_helicopter (const Position &inici, const Position &meta, queue<PP>&qp, int id) {
         visitats = VVE(MAX,VE(MAX,false));
         queue <pair<Position,queue <PP>>> Q;
-        visitats[inici.i][inici.j] = true;
-        bool trobat = false;
-        int ori = data(id).orientation;
-        queue <PP> aux;
-        aux.push({ori,Position()});
+        queue <PP> aux; aux.push({data(id).orientation,Position()});
         Q.push({inici,aux});
-        int new_ori;
-        while (not Q.empty() && !trobat) {
-            pair <Position,queue <PP>> p = Q.front(); Q.pop();
+        bool trobat = false;
+        visitats[inici.i][inici.j] = true;
 
+        while (not Q.empty() && !trobat) {
+
+            pair <Position,queue <PP>> p = Q.front(); Q.pop();
             for (int i = 0; i < 4; ++i) {
+
                 queue <PP> route = p.second;
-                Position next = sum(p.first,Position(I[i],J[i]));
+                int ori = p.second.front().first;
+                Position next = sum(p.first,Position(HI[i],HJ[i]));
+
                 if (! visitats[next.i][next.j]) {
-                    if (pos_ok(next) && can_I_QuestionMark(next,id) && hel_can_move(p.first,next, id)) {
-                        visitats[next.i][next.j] = true;
-                        new_ori = new_orientation(p.second.front().second,next);
-                        if (ori != new_ori){
-                            route.push({new_ori,p.second.front().second});
-                            route.push({new_ori,next});
-                        }
+
+                    if (pos_ok(next)
+                    && can_I_QuestionMark(next,id)
+                    && hel_can_move(p.first,next, id)) {
+                        int new_ori = new_orientation(route.front().second,next);
+
+                        if (ori != new_ori)
+                            route.push({new_ori,route.front().second});
+
                         else
                             route.push({ori,next});
+
+                        Q.push({next,route});
+                        visitats[next.i][next.j] = true;
+
+
                     }
-                    if (next.i == meta.i && next.j == meta.j)
+
+                    if (next.i == meta.i && next.j == meta.j){
                         qp = route;
                         trobat = true;
+                    }
                 }
             }
-            ori = new_ori;
         }
     }
 
@@ -247,8 +259,9 @@ struct PLAYER_NAME : public Player {
         BFS_soldier(act,obj,qp,id);
     }
 
-    void move_soldier(int id, const Position &p) {
-        command_soldier(id,p.i,p.j);
+    void move_soldier(int id, int i) {
+        Position move = v_cues_s[i].second.front(); v_cues_s[i].second.pop();
+        command_soldier(id,move.i,move.j);
     }
 
     /*----------------
@@ -328,6 +341,9 @@ struct PLAYER_NAME : public Player {
         Position obj = which_post(id);
         Position act = data(id).pos;
         BFS_helicopter(act,obj,qp,id);
+        cerr << "obj_i: "  << obj.i << " obj_j: " << obj.j << endl;
+        cerr << "next_i: " << qp.front().second.i << " next_j: " <<  qp.front().second.j << endl;
+        cerr << "orientation: " <<  data(id).orientation << "orien_next" << qp.front().first << endl;
     }
 
     void throw_parachuter(int helicopter_id) {
@@ -342,13 +358,44 @@ struct PLAYER_NAME : public Player {
             }
     }
 
-    void move_helicopter (int id, const PP &move) {
-        //FORWARD1
-        //FORWARD2
-        //COUNTER_CLOCKWISE
-        //CLOCKWISE
+    void move_helicopter (int id,int i) {
+        int code;
+        PP move = v_cues_h[i].front(); v_cues_h[i].pop();
+        int act_ori = data(id).orientation;
 
-        //command_helicopter(id, code);
+        if (act_ori == move.first) {
+            if (v_cues_h[i].front().first == act_ori){
+                code = FORWARD2;
+                v_cues_h[i].pop();
+            }
+            else
+                code = FORWARD1;
+        }
+
+        else {
+            if (act_ori == N) {
+                if (move.first == E) code = CLOCKWISE;
+                else if (move.first == S) code =  random(1, 2) ? CLOCKWISE : COUNTER_CLOCKWISE;
+                else code = COUNTER_CLOCKWISE;
+            }
+            else if (act_ori == E) {
+                if (move.first == S) code = CLOCKWISE;
+                else if (move.first == W) code =  random(1, 2) ? CLOCKWISE : COUNTER_CLOCKWISE;
+                else code = COUNTER_CLOCKWISE;
+            }
+            else if (act_ori == S) {
+                if (move.first == W) code = CLOCKWISE;
+                else if (move.first == N) code =  random(1, 2) ? CLOCKWISE : COUNTER_CLOCKWISE;
+                else code = COUNTER_CLOCKWISE;
+            }
+            else {
+                if (move.first == N) code = CLOCKWISE;
+                else if (move.first == E) code =  random(1, 2) ? CLOCKWISE : COUNTER_CLOCKWISE;
+                else code = COUNTER_CLOCKWISE;
+            }
+
+        }
+        command_helicopter(id, code);
     }
 
     /*----------------
@@ -356,35 +403,31 @@ struct PLAYER_NAME : public Player {
     ----------------*/
 
     virtual void play () {
-        int player   = me();
-        v_soldier    = soldiers(player);
-        v_helicopter = helicopters(player);
+        v_soldier    = soldiers(me());
+        v_helicopter = helicopters(me());
         v_posts      = posts();
         v_cues_s     = VIQ((int)v_soldier.size());
         v_cues_h     = vector<queue<PP>>((int)v_helicopter.size());
 
         for (int i = 0; i < (int)v_soldier.size(); ++i) {
-            QP qp;
             play_soldier(v_soldier[i], v_cues_s[i].second);
-            Position move = v_cues_s[i].second.front(); v_cues_s[i].second.pop();
-            move_soldier(v_soldier[i],move);
+            move_soldier(v_soldier[i], i);
 
         }
 
         for (int i = 0; i < (int)v_helicopter.size();++i){
             play_helicopter(v_helicopter[i],v_cues_h[i]);
-            PP move = v_cues_h[i].front(); v_cues_h[i].pop();
-            move_helicopter(v_helicopter[i],move);
+            move_helicopter(v_helicopter[i], i);
         }
     }
 
 };
-/*
+
 constexpr int PLAYER_NAME::I[8];
 constexpr int PLAYER_NAME::J[8];
 constexpr int PLAYER_NAME::HI[4];
 constexpr int PLAYER_NAME::HJ[4];
-*/
+
 /**
 * Do not modify the following line.
 */

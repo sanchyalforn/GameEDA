@@ -12,8 +12,6 @@ Game.o: Game.cc Game.hh Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
 Info.o: Info.cc Info.hh Settings.hh Structs.hh Utils.hh Defs.hh State.hh
 Main.o: Main.cc Game.hh Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
  Defs.hh State.hh Action.hh Random.hh Registry.hh Board.hh
-MyPlayer.o: MyPlayer.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
- Defs.hh State.hh Action.hh Random.hh Registry.hh
 Player.o: Player.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
  Defs.hh State.hh Action.hh Random.hh Registry.hh
 Random.o: Random.cc Random.hh Utils.hh Defs.hh
@@ -24,5 +22,3 @@ Structs.o: Structs.cc Structs.hh Utils.hh Defs.hh
 Utils.o: Utils.cc Utils.hh Defs.hh
 asd.o: asd.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh Defs.hh \
  State.hh Action.hh Random.hh Registry.hh
-coses.o: coses.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
- Defs.hh State.hh Action.hh Random.hh Registry.hh
