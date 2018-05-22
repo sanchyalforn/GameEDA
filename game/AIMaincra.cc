@@ -112,9 +112,9 @@ struct PLAYER_NAME : public Player {
     }
 */
     bool can_I_QuestionMark(const Position& pos, int id) {
-        if (data(id).type == HELICOPTER) {
+        if (data(id).type == HELICOPTER)
             return (what(pos.i,pos.j) != MOUNTAIN && which_helicopter(pos.i,pos.j) == 0);
-        }
+
         else {
             return (what(pos.i,pos.j)          != MOUNTAIN
                  && what(pos.i,pos.j)          != WATER
@@ -137,6 +137,14 @@ struct PLAYER_NAME : public Player {
 
     }
 
+    bool hel_can_move(const Position &a, const Position &b, int id) {
+        Position x = pos_sub(a,b);
+        if (HI[0] ==  x.i && HJ[0] == x.j) return can_go_down(a,id); //DOWN
+        if (HI[1] ==  x.i && HJ[1] == x.j) return can_go_right(a,id); //RIGHT
+        if (HI[2] ==  x.i && HJ[2] == x.j) return can_go_up(a,id); //UP
+        return can_go_left(a,id); //LEFT
+    }
+
     void BFS_helicopter (const Position &inici, const Position &meta, queue<PP>&qp, int id) {
         visitats = VVE(MAX,VE(MAX,false));
         queue <pair<Position,queue <PP>>> Q;
@@ -154,11 +162,13 @@ struct PLAYER_NAME : public Player {
                 queue <PP> route = p.second;
                 Position next = sum(p.first,Position(I[i],J[i]));
                 if (! visitats[next.i][next.j]) {
-                    if (pos_ok(next) && can_I_QuestionMark(next,id)) {
+                    if (pos_ok(next) && can_I_QuestionMark(next,id) && hel_can_move(p.first,next, id)) {
                         visitats[next.i][next.j] = true;
                         new_ori = new_orientation(p.second.front().second,next);
-                        if (ori != new_ori)
+                        if (ori != new_ori){
                             route.push({new_ori,p.second.front().second});
+                            route.push({new_ori,next});
+                        }
                         else
                             route.push({ori,next});
                     }
@@ -241,9 +251,6 @@ struct PLAYER_NAME : public Player {
         command_soldier(id,p.i,p.j);
     }
 
-
-
-
     /*----------------
         HELICOPTER
     ----------------*/
@@ -258,6 +265,54 @@ struct PLAYER_NAME : public Player {
     * * * * *
 
     */
+
+    bool can_go_up(const Position &pos, int id){
+        for (int i = -4; i <= -2; ++i)
+            for (int j = -4; j <= 4; ++j){
+                int aux_i = pos.i + i;
+                int aux_j = pos.i + j;
+                Position aux = Position(aux_i,aux_j);
+                if (pos_ok(aux))
+                    if (!can_I_QuestionMark(aux,id)) return false;
+            }
+        return true;
+    }
+
+    bool can_go_left(const Position &pos, int id){
+        for (int i = -5; i <= 5; ++i)
+            for (int j = -3; j <= -2; ++j){
+                int aux_i = pos.i + i;
+                int aux_j = pos.i + j;
+                Position aux = Position(aux_i,aux_j);
+                if (pos_ok(aux))
+                    if (!can_I_QuestionMark(aux,id)) return false;
+            }
+        return true;
+    }
+
+    bool can_go_right(const Position &pos, int id){
+        for (int i = -5; i <= 5; ++i)
+            for (int j = 2; j <= 3; ++j){
+                int aux_i = pos.i + i;
+                int aux_j = pos.i + j;
+                Position aux = Position(aux_i,aux_j);
+                if (pos_ok(aux))
+                    if (!can_I_QuestionMark(aux,id)) return false;
+            }
+        return true;
+    }
+
+    bool can_go_down(const Position &pos, int id){
+        for (int i = 2; i <= 4; ++i)
+            for (int j = -4; j <= 4; ++j){
+                int aux_i = pos.i + i;
+                int aux_j = pos.i + j;
+                Position aux = Position(aux_i,aux_j);
+                if (pos_ok(aux))
+                    if (!can_I_QuestionMark(aux,id)) return false;
+            }
+        return true;
+    }
 
 
     void play_helicopter(int id, queue<PP> &qp) {
