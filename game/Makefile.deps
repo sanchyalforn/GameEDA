@@ -7,7 +7,6 @@ AINull.o: AINull.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
 Action.o: Action.cc Action.hh Structs.hh Utils.hh Defs.hh
 Board.o: Board.cc Board.hh Info.hh Settings.hh Structs.hh Utils.hh \
  Defs.hh State.hh Action.hh Random.hh
-Dijkstra_matrix.o: Dijkstra_matrix.cc
 Game.o: Game.cc Game.hh Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
  Defs.hh State.hh Action.hh Random.hh Registry.hh Board.hh
 Info.o: Info.cc Info.hh Settings.hh Structs.hh Utils.hh Defs.hh State.hh
@@ -21,7 +20,5 @@ Settings.o: Settings.cc Settings.hh Structs.hh Utils.hh Defs.hh
 State.o: State.cc State.hh Structs.hh Utils.hh Defs.hh
 Structs.o: Structs.cc Structs.hh Utils.hh Defs.hh
 Utils.o: Utils.cc Utils.hh Defs.hh
-asd.o: asd.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh Defs.hh \
- State.hh Action.hh Random.hh Registry.hh
 stuff.o: stuff.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
  Defs.hh State.hh Action.hh Random.hh Registry.hh

@@ -139,6 +139,10 @@ struct PLAYER_NAME : public Player {
         }
     }
 
+    Position pos_sub(const Position &a, const Position &b) {
+        return Position(b.i - a.i, b.j - a.j);
+    }
+
     int new_orientation(const Position&act, const Position&next) {
 
         Position x = pos_sub(act,next);
@@ -486,8 +490,6 @@ struct PLAYER_NAME : public Player {
     const int E       = 1; //RIGHT
     const int N       = 2; //UP
     const int W       = 3; //LEFT
-
-    const int INFINIT = 1e9;
 
     // --------------------------------------------
 
