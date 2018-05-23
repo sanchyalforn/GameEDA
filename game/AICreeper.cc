@@ -1,11 +1,12 @@
 #include "Player.hh"
+#include <stack>
 
 /**
 * Write the name of your player and save this file
 * with the same name and .cc extension.
 */
 
-#define PLAYER_NAME Creeper
+#define PLAYER_NAME Maincra
 
 
 // DISCLAIMER: The following Demo player is *not* meant to do anything
@@ -35,20 +36,21 @@ struct PLAYER_NAME : public Player {
     static constexpr int HJ[4] = { 0,  1,  0, -1};
 
     // --------------------------------------------
-
+/*
     const int S       = 0; //DOWN
     const int E       = 1; //RIGHT
     const int N       = 2; //UP
     const int W       = 3; //LEFT
-
-    const int radius  = 5;
-    const int INFINIT = 1e9;
+*/
+    const int radius  = 2;
 
     // --------------------------------------------
 
     using VE    =   vector <int>;
     using VVE   =   vector <VE>;
     using QP    =   queue <Position>;
+    using VP    =   vector <Position>;
+    using VVP   =   vector <VP>;
 
     // --------------------------------------------
 
@@ -56,7 +58,7 @@ struct PLAYER_NAME : public Player {
     VE                  v_helicopter;
     vector <Post>       v_posts;
     VVE                 visitats;
-
+    stack<Position>     S;
     /*------------------
         RANDOM STUFF
     ------------------*/
@@ -75,49 +77,19 @@ struct PLAYER_NAME : public Player {
 
         for (int i = 0; i < MAX; ++i)
             for (int j = 0; j < MAX; ++j) {
-                if (pos_ok(i,j)) {
-                    // Get Position
-                    Position temp = Position(i, j);
 
-                    // Check if city (not my property)
-                    if ((post_owner(temp.i,temp.j) != -2) && (post_owner(temp.i,temp.j) != me())) {
+                // Get Position
+                Position temp = Position(i, j);
 
-                        // Distance
-                        if (aux.i == -1 or (manhattan_distance(temp,sold) < manhattan_distance(sold,aux)))
-                            aux = temp;
-                    }
+                // Check if city (not my property)
+                if ((post_owner(temp.i,temp.j) != -2) && (post_owner(temp.i,temp.j) != me())) {
+
+                    // Distance
+                    if (aux.i == -1 || (manhattan_distance(temp,sold) < manhattan_distance(sold,aux)))
+                        aux = temp;
                 }
-
             }
         return aux;
-    }
-
-    //LOOKS IF  ITS A GOOD PLACE TO THROW A PARACHUTER
-    bool parachuter_QuestionMark(const Position &p) {
-        int x = p.i;
-        int y = p.j;
-        if ((what(x,y) == WATER) or (what(x,y) == MOUNTAIN)) return false;
-        if (fire_time(x,y) != 0) return false;
-        if (which_soldier(x,y) != 0) return false;
-        return true;
-    }
-
-    //LOOKS IF  ITS A GOOD PLACE TO THROW NAPALM
-    bool napalm_QuestionMark(Position pos) {
-        int num_enemics = 0;
-        int num_meus = 0;
-        bool post = false;
-        for (int i = 0; i < 5; ++i)
-            for (int j = 0; j < 5; ++j) {
-                Position act = {pos.i - 2 + i,pos.j - 2 + j};
-                int data_soldier = which_soldier(act.i,act.j);
-                int owner_post = post_owner(act.i,act.j);
-                if (data_soldier <= -1) continue;
-                (which_soldier(act.i,act.j) == me() ? ++num_meus : ++num_enemics);
-            }
-        return ((num_meus < 3 && num_enemics > num_meus)
-        ||      (num_enemics  >  2*num_meus-1)
-        ||      (num_meus     < 2 && post));
     }
 
     /*----------------
@@ -127,7 +99,7 @@ struct PLAYER_NAME : public Player {
     int BFS(const Position &act, const Position &obj){
 
         queue <pair<Position,int>> Q;
-    	Q.push({Position(),-1});
+    	Q.push({act,-1});
     	visitats = VVE(MAX,VE(MAX,false));
     	visitats[act.i][act.j] = true;
         int aux = 0;
@@ -187,45 +159,64 @@ struct PLAYER_NAME : public Player {
         }
     }
 
-    bool enemy_near (const Position &pos) {
+    void BFS_ (const Position &act, const Position &obj) {
+        VVP pare (MAX,VP(MAX,Position(-1,-1)));
+        pare[act.i][act.j] = act;
+        queue <Position> Q;
+        Q.push(act);
 
-        for (int i = pos.i - radius; i < pos.i + radius;  ++i)
-            for (int j = pos.j - radius; j < pos.j + radius; ++j) {
-                if (pos_ok(i,j)) {
-                    if (which_soldier(i,j) != 0 && which_soldier(i,j) == me())
-                        if (data(which_soldier(pos.i,pos.j)).life >= data(which_soldier(i,j)).life)
-                            return true;
+        while (!Q.empty()) {
+            auto p = Q.front(); Q.pop();
+
+            for (int i = 0; i < 8; ++i) {
+                Position next = suma(p,Position(I[i],J[i]));
+                if (pos_ok(next)
+                &&  pare[next.i][next.j].i == -1
+                &&  fire_time(next.i,next.j) == 0
+                &&  what(next.i,next.j) != MOUNTAIN
+                &&  what(next.i,next.j) != WATER
+                &&  which_soldier(next.i,next.j) < 1) {
+                    pare[next.i][next.j] = p;
                 }
-            }
-            return false;
-    }
-
-    Position which_enemy(const Position &pos) {
-        Position aux = Position(-1,-1);
-        for (int i = pos.i - radius; i < pos.i + radius;  ++i)
-            for (int j = pos.j - radius; j < pos.j + radius; ++j) {
-                if (pos_ok(i,j)) {
-                    if (which_soldier(i,j) != 0 && which_soldier(i,j) == me()) {
-                        if (aux.i == -1
-                        || (manhattan_distance(pos,Position(i,j)) < manhattan_distance(pos,aux)
-                        &&  data(which_soldier(pos.i,pos.j)).life >= data(which_soldier(i,j)).life))
-                            aux = Position(i,j);
+                cerr <<"arribo " << i << endl;
+                if (next.i == obj.i && next.j == obj.j){
+                    cerr <<"arribo " << i << endl;
+                    S = stack <Position>();
+                    while (next.i != act.i && next.j != act.j) {
+                        S.push(next);
+                        next = pare[next.i][next.j];
+                        return;
                     }
                 }
-
             }
-            return aux;
+        }
+    }
+
+    Position enemy_near (const Position &pos) {
+        int my_life = data(which_soldier(pos.i,pos.j)).life;
+        for (int i = pos.i - radius; i < pos.i + radius;  ++i)
+            for (int j = pos.j - radius; j < pos.j + radius; ++j) {
+                if (pos_ok(i,j) && which_soldier(i,j) != 0 && data(which_soldier(i,j)).player != me())
+                    if ( my_life >= data(which_soldier(i,j)).life)
+                        return Position(i,j);
+            }
+            return Position(-1,-1);
     }
 
     void play_soldier(int id) {
         Position act = data(id).pos;
-        Position obj = (enemy_near(act) ? which_enemy(act) : which_post(act));
+        Position obj  = enemy_near(act);
+        if (obj.i == -1) obj = which_post(act);
+        cerr << "pos i: " << act.i << " act.j: " << act.j << endl;
+        cerr << "obj i: " << obj.i << " obj.j: " << obj.j << endl;
         QP qp;
         BFS_soldier(act,obj,qp,id);
         Position next = qp.front();
+        cerr << "next i: " << next.i << " next.j: " << next.j << endl;
         command_soldier(id,next.i,next.j);
-        //int m = BFS(act,obj);
-        //command_soldier(id,act.i + I[m],act.j + J[m]);
+        //BFS_(act,obj);
+        //auto x = S.top();
+        //command_soldier(id,x.i,x.j);
     }
 
     /*----------------
@@ -256,22 +247,18 @@ struct PLAYER_NAME : public Player {
 
         // With probability 20% we turn counter clockwise,
         // otherwise we try to move forward two steps.
-        int c = random(1, 3);
+        int c = random(1, 5);
         command_helicopter(id, c == 1 ? COUNTER_CLOCKWISE : FORWARD2);
     }
 
     void throw_parachuter(int id) {
-        int np = 0;
         Position x = data(id).pos;
         for (int i = -2; i < 2; ++i)
             for (int j = -2; j < 2; ++j) {
                 int x_i = x.i + i;
                 int x_j = x.j + j;
-                if (pos_ok(x_i,x_j)
-                && ! data(id).parachuters.empty()
-                && parachuter_QuestionMark(Position(x_i,x_j))) {
+                if (pos_ok(x_i,x_j) && ! data(id).parachuters.empty() && parachuter_QuestionMark(Position(x_i,x_j)))
                     command_parachuter(x_i,x_j);
-                }
             }
     }
 
@@ -282,8 +269,10 @@ struct PLAYER_NAME : public Player {
         int player   = me();
         v_soldier    = soldiers(player);
         v_helicopter = helicopters(player);
+
         for (int i = 0; i < (int)v_helicopter.size(); ++i)
             play_helicopter(v_helicopter[i]);
+
         for (int i = 0; i < (int)v_soldier.size(); ++i)
             play_soldier(v_soldier[i]);
 
