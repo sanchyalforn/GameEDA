@@ -30,8 +30,8 @@ struct PLAYER_NAME : public Player {
           GLOBALS
     ------------------*/
 
-    static constexpr int I[8]  = {-1, -1,  0,  1,  0,  1,  0, -1 };
-    static constexpr int J[8]  = { 0,  1,  1,  1, -1, -1, -1, -1 };
+    static constexpr int I[8] = { 1, 1, 0, -1, -1, -1,  0,  1 };
+    static constexpr int J[8] = { 0, 1, 1,  1,  0, -1, -1, -1 };
     static constexpr int HI[4] = { 1,  0, -1,  0};
     static constexpr int HJ[4] = { 0,  1,  0, -1};
 
@@ -43,6 +43,7 @@ struct PLAYER_NAME : public Player {
     const int W       = 3; //LEFT
 */
     const int radius  = 2;
+    const int INFINIT = 1e9;
 
     // --------------------------------------------
 
@@ -92,10 +93,38 @@ struct PLAYER_NAME : public Player {
         return aux;
     }
 
+    //LOOKS IF  ITS A GOOD PLACE TO THROW A PARACHUTER
+    bool parachuter_QuestionMark(const Position &p) {
+        int x = p.i;
+        int y = p.j;
+        if ((what(x,y) == WATER) or (what(x,y) == MOUNTAIN)) return false;
+        if (fire_time(x,y) != 0) return false;
+        if (which_soldier(x,y) != 0) return false;
+        return true;
+    }
+
+    //LOOKS IF  ITS A GOOD PLACE TO THROW NAPALM
+    bool napalm_QuestionMark(Position pos) {
+        int num_enemics = 0;
+        int num_meus = 0;
+        bool post = false;
+        for (int i = 0; i < 5; ++i)
+            for (int j = 0; j < 5; ++j) {
+                Position act = {pos.i - 2 + i,pos.j - 2 + j};
+                int data_soldier = which_soldier(act.i,act.j);
+                int owner_post = post_owner(act.i,act.j);
+                if (data_soldier <= -1) continue;
+                (which_soldier(act.i,act.j) == me() ? ++num_meus : ++num_enemics);
+            }
+        return ((num_meus < 3 && num_enemics > num_meus)
+        ||      (num_enemics  >  2*num_meus-1)
+        ||      (num_meus     < 2 && post));
+    }
+
     /*----------------
         SOLDIER
     ----------------*/
-
+/*
     int BFS(const Position &act, const Position &obj){
 
         queue <pair<Position,int>> Q;
@@ -103,10 +132,9 @@ struct PLAYER_NAME : public Player {
     	visitats = VVE(MAX,VE(MAX,false));
     	visitats[act.i][act.j] = true;
         int aux = 0;
-        bool found = false;
-    	while (!Q.empty() && !found) {
+    	while (!Q.empty()) {
     		auto p = Q.front(); Q.pop();
-            for (int i = 0; i < 8 && !found; ++i) {
+            for (int i = 0; i < 8; ++i) {
                 int dir = (p.second == -1 ? i : p.second);
     			Position next = suma(p.first,Position(I[i],J[i]));
                 if (pos_ok(next)) {
@@ -125,6 +153,7 @@ struct PLAYER_NAME : public Player {
     	}
         return -1;
     }
+*/
 
     void BFS_soldier (const Position &i_pos,const Position &f_pos, QP &qp, int id){
         visitats = VVE (MAX, VE (MAX, false));
@@ -169,54 +198,76 @@ struct PLAYER_NAME : public Player {
             auto p = Q.front(); Q.pop();
 
             for (int i = 0; i < 8; ++i) {
+                //cerr << "arriba" << i << endl;
                 Position next = suma(p,Position(I[i],J[i]));
                 if (pos_ok(next)
                 &&  pare[next.i][next.j].i == -1
                 &&  fire_time(next.i,next.j) == 0
                 &&  what(next.i,next.j) != MOUNTAIN
                 &&  what(next.i,next.j) != WATER
-                &&  which_soldier(next.i,next.j) < 1) {
+                &&  which_soldier(next.i,next.j) == 0) {
                     pare[next.i][next.j] = p;
+                    Q.push(next);
                 }
-                cerr <<"arribo " << i << endl;
+
                 if (next.i == obj.i && next.j == obj.j){
-                    cerr <<"arribo " << i << endl;
                     S = stack <Position>();
                     while (next.i != act.i && next.j != act.j) {
                         S.push(next);
                         next = pare[next.i][next.j];
-                        return;
                     }
+                    return;
                 }
             }
         }
     }
 
-    Position enemy_near (const Position &pos) {
+    bool enemy_near (const Position &pos) {
         int my_life = data(which_soldier(pos.i,pos.j)).life;
         for (int i = pos.i - radius; i < pos.i + radius;  ++i)
             for (int j = pos.j - radius; j < pos.j + radius; ++j) {
                 if (pos_ok(i,j) && which_soldier(i,j) != 0 && data(which_soldier(i,j)).player != me())
                     if ( my_life >= data(which_soldier(i,j)).life)
-                        return Position(i,j);
+                        return true;
             }
-            return Position(-1,-1);
+            return false;
+    }
+
+    Position which_enemy(const Position &pos) {
+        Position aux = Position(-1,-1);
+        for (int i = pos.i - radius; i < pos.i + radius;  ++i)
+            for (int j = pos.j - radius; j < pos.j + radius; ++j) {
+                if (pos_ok(i,j) && which_soldier(i,j) != 0 && data(which_soldier(i,j)).player != me()) {
+                    if (aux.i == -1
+                    || (manhattan_distance(pos,Position(i,j)) < manhattan_distance(pos,aux)
+                    &&  data(which_soldier(pos.i,pos.j)).life >= data(which_soldier(i,j)).life))
+                        aux = Position(i,j);
+                }
+            }
+            return aux;
     }
 
     void play_soldier(int id) {
         Position act = data(id).pos;
-        Position obj  = enemy_near(act);
-        if (obj.i == -1) obj = which_post(act);
-        cerr << "pos i: " << act.i << " act.j: " << act.j << endl;
-        cerr << "obj i: " << obj.i << " obj.j: " << obj.j << endl;
+        Position obj = (enemy_near(act) ? which_enemy(act) : which_post(act));
+        //cerr << enemy_near(act) <<"   pos i: " << act.i << " act.j: " << act.j << endl;
+        //cerr << "obj i: " << obj.i << " obj.j: " << obj.j << endl;
+/*
+        int direction = BFS(act,obj);
+        if (manhattan_distance(act,obj) == 1) command_soldier(id,obj.i,obj.j);
+        command_soldier(id,act.i+I[direction],act.j+J[direction]);
+*/
+/*
         QP qp;
         BFS_soldier(act,obj,qp,id);
         Position next = qp.front();
-        cerr << "next i: " << next.i << " next.j: " << next.j << endl;
         command_soldier(id,next.i,next.j);
-        //BFS_(act,obj);
-        //auto x = S.top();
-        //command_soldier(id,x.i,x.j);
+*/
+
+        BFS_(act,obj);
+        auto x = S.top();
+        command_soldier(id,x.i,x.j);
+
     }
 
     /*----------------
@@ -270,11 +321,12 @@ struct PLAYER_NAME : public Player {
         v_soldier    = soldiers(player);
         v_helicopter = helicopters(player);
 
-        for (int i = 0; i < (int)v_helicopter.size(); ++i)
-            play_helicopter(v_helicopter[i]);
 
         for (int i = 0; i < (int)v_soldier.size(); ++i)
             play_soldier(v_soldier[i]);
+        for (int i = 0; i < (int)v_helicopter.size(); ++i)
+            play_helicopter(v_helicopter[i]);
+
 
     }
 
