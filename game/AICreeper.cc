@@ -42,7 +42,7 @@ struct PLAYER_NAME : public Player {
     const int N       = 2; //UP
     const int W       = 3; //LEFT
 */
-    const int radius  = 1;
+    const int radius  = 2;
     const int INFINIT = 1e9;
 
     // --------------------------------------------
@@ -91,35 +91,6 @@ struct PLAYER_NAME : public Player {
                 }
             }
         return aux;
-    }
-
-    //LOOKS IF  ITS A GOOD PLACE TO THROW A PARACHUTER
-    bool parachuter_QuestionMark(const Position &p) {
-        int x = p.i;
-        int y = p.j;
-        if (!pos_ok(p)) return false;
-        if ((what(x,y) == WATER) or (what(x,y) == MOUNTAIN)) return false;
-        if (fire_time(x,y) != 0) return false;
-        if (which_soldier(x,y) != 0) return false;
-        return true;
-    }
-
-    //LOOKS IF  ITS A GOOD PLACE TO THROW NAPALM
-    bool napalm_QuestionMark(Position pos) {
-        int num_enemics = 0;
-        int num_meus = 0;
-        bool post = false;
-        for (int i = 0; i < 5; ++i)
-            for (int j = 0; j < 5; ++j) {
-                Position act = {pos.i - 2 + i,pos.j - 2 + j};
-                int data_soldier = which_soldier(act.i,act.j);
-                int owner_post = post_owner(act.i,act.j);
-                if (data_soldier <= -1) continue;
-                (which_soldier(act.i,act.j) == me() ? ++num_meus : ++num_enemics);
-            }
-        return ((num_meus < 3 && num_enemics > num_meus)
-        ||      (num_enemics  >  2*num_meus-1)
-        ||      (num_meus     < 2 && post));
     }
 
     /*----------------
@@ -306,33 +277,51 @@ struct PLAYER_NAME : public Player {
 
         // With probability 20% we turn counter clockwise,
         // otherwise we try to move forward two steps.
-        int c = random(1, 5);
+        int c = random(1, 7);
         command_helicopter(id, c == 1 ? COUNTER_CLOCKWISE : FORWARD2);
     }
 
-    void throw_parachuter(int helicopter_id) {
-
-      Data in = data(helicopter_id);
-      // ... and try to throw a parachuter, without even examining the land.
-      int ii = in.pos.i + random(-2, 2);
-      int jj = in.pos.j + random(-2, 2);
-      if (ii >= 0 and ii < MAX and jj >= 0 and jj < MAX)
-        if (parachuter_QuestionMark(Position(ii,jj)) throw_parachuter(helicopter_id));
-
-        if ()
-
+    //LOOKS IF  ITS A GOOD PLACE TO THROW A PARACHUTER
+    bool parachuter_QuestionMark(const Position &p) {
+        int x = p.i;
+        int y = p.j;
+        if ((what(x,y) == WATER) or (what(x,y) == MOUNTAIN)) return false;
+        if (fire_time(x,y) != 0) return false;
+        if (which_soldier(x,y) != 0) return false;
+        return true;
     }
 
-    /*void throw_parachuter(int id) {
-        Position x = data(id).pos;
-        for (int i = -2; i < 2; ++i)
-            for (int j = -2; j < 2; ++j) {
-                int x_i = x.i + i;
-                int x_j = x.j + j;
-                if (pos_ok(x_i,x_j) && ! data(id).parachuters.empty() && parachuter_QuestionMark(Position(x_i,x_j)))
-                    command_parachuter(x_i,x_j);
+    //LOOKS IF  ITS A GOOD PLACE TO THROW NAPALM
+    bool napalm_QuestionMark(Position pos) {
+        int num_enemics = 0;
+        int num_meus = 0;
+        bool post = false;
+        for (int i = 0; i < 5; ++i)
+            for (int j = 0; j < 5; ++j) {
+                Position act = {pos.i - 2 + i,pos.j - 2 + j};
+                int data_soldier = which_soldier(act.i,act.j);
+                int owner_post = post_owner(act.i,act.j);
+                if (data_soldier <= -1) continue;
+                (which_soldier(act.i,act.j) == me() ? ++num_meus : ++num_enemics);
             }
-    }*/
+        return ((num_meus < 3 && num_enemics > num_meus)
+        ||      (num_enemics  >  2*num_meus-1)
+        ||      (num_meus     < 2 && post));
+    }
+
+    void throw_parachuter(int helicopter_id) {
+        // We get the data of the helicopter...
+        Data in = data(helicopter_id);
+        Position pos = in.pos;
+        int np = 4;
+        for (int i = pos.i-2; i < pos.i+2 && np > 0 ; ++i)
+            for (int j = pos.j-2; j < pos.j +2 && np > 0; ++j) {
+                if (!in.parachuters.empty() && parachuter_QuestionMark(Position(i,j))) {
+                    command_parachuter(i, j);
+                    --np;
+                }
+            }
+    }
 
 
 
