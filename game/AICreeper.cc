@@ -100,15 +100,15 @@ struct PLAYER_NAME : public Player {
     int BFS(const Position &act, const Position &obj){
 
         queue <pair<Position,int>> Q;
-    	Q.push({act,-1});
-    	visitats = VVE(MAX,VE(MAX,false));
-    	visitats[act.i][act.j] = true;
+        Q.push({act,-1});
+        visitats = VVE(MAX,VE(MAX,false));
+        visitats[act.i][act.j] = true;
         int aux = 0;
-    	while (!Q.empty()) {
-    		auto p = Q.front(); Q.pop();
+        while (!Q.empty()) {
+            auto p = Q.front(); Q.pop();
             for (int i = 0; i < 8; ++i) {
                 int dir = (p.second == -1 ? i : p.second);
-    			Position next = suma(p.first,Position(I[i],J[i]));
+                Position next = suma(p.first,Position(I[i],J[i]));
                 if (pos_ok(next)) {
                     if (!visitats[next.i][next.j]) {
                         if (what(next.i,next.j) != MOUNTAIN
@@ -122,7 +122,7 @@ struct PLAYER_NAME : public Player {
                 if (next.i == obj.i && next.j == obj.j)
                     return p.second;
             }
-    	}
+        }
         return -1;
     }
 */
@@ -203,7 +203,7 @@ struct PLAYER_NAME : public Player {
         for (int i = pos.i - radius; i < pos.i + radius;  ++i)
             for (int j = pos.j - radius; j < pos.j + radius; ++j) {
                 if (pos_ok(i,j) && which_soldier(i,j) != 0 && data(which_soldier(i,j)).player != me())
-                    if ( my_life >= data(which_soldier(i,j)).life)
+                    //if ( my_life >= data(which_soldier(i,j)).life)
                         return true;
             }
             return false;
@@ -216,7 +216,7 @@ struct PLAYER_NAME : public Player {
                 if (pos_ok(i,j) && which_soldier(i,j) != 0 && data(which_soldier(i,j)).player != me()) {
                     if (aux.i == -1
                     || (manhattan_distance(pos,Position(i,j)) < manhattan_distance(pos,aux)
-                    &&  data(which_soldier(pos.i,pos.j)).life >= data(which_soldier(i,j)).life))
+                /*&&  data(which_soldier(pos.i,pos.j)).life >= data(which_soldier(i,j)).life*/))
                         aux = Position(i,j);
                 }
             }
@@ -242,7 +242,7 @@ struct PLAYER_NAME : public Player {
 */
 
         BFS_(act,obj);
-        cout << "arribo aqui" << round() << endl;
+        cerr << "arribo aqui" << round() << endl;
         Position x = S.top();
         cerr << x.i <<' ' << x.j << endl;
         (manhattan_distance(act,obj) == 1 ? command_soldier(id,obj.i,obj.j) : command_soldier(id,x.i,x.j));
@@ -302,7 +302,7 @@ struct PLAYER_NAME : public Player {
                 int data_soldier = which_soldier(act.i,act.j);
                 int owner_post = post_owner(act.i,act.j);
                 if (data_soldier <= -1) continue;
-                (which_soldier(act.i,act.j) == me() ? ++num_meus : ++num_enemics);
+                (data(which_soldier(act.i,act.j)).player == me() ? ++num_meus : ++num_enemics);
             }
         return ((num_meus < 3 && num_enemics > num_meus)
         ||      (num_enemics  >  2*num_meus-1)
