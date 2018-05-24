@@ -42,7 +42,7 @@ struct PLAYER_NAME : public Player {
     const int N       = 2; //UP
     const int W       = 3; //LEFT
 */
-    const int radius  = 2;
+    const int radius  = 1;
     const int INFINIT = 1e9;
 
     // --------------------------------------------
@@ -97,6 +97,7 @@ struct PLAYER_NAME : public Player {
     bool parachuter_QuestionMark(const Position &p) {
         int x = p.i;
         int y = p.j;
+        if (!pos_ok(p)) return false;
         if ((what(x,y) == WATER) or (what(x,y) == MOUNTAIN)) return false;
         if (fire_time(x,y) != 0) return false;
         if (which_soldier(x,y) != 0) return false;
@@ -191,29 +192,33 @@ struct PLAYER_NAME : public Player {
     void BFS_ (const Position &act, const Position &obj) {
         VVP pare (MAX,VP(MAX,Position(-1,-1)));
         pare[act.i][act.j] = act;
-        queue <Position> Q;
-        Q.push(act);
+        queue <Position> Q; Q.push(act);
 
         while (!Q.empty()) {
-            auto p = Q.front(); Q.pop();
-
+            Position p = Q.front(); Q.pop();
             for (int i = 0; i < 8; ++i) {
-                //cerr << "arriba" << i << endl;
                 Position next = suma(p,Position(I[i],J[i]));
                 if (pos_ok(next)
-                &&  pare[next.i][next.j].i == -1
+                &&  (pare[next.i][next.j].i == -1 or pare[next.i][next.j].j == -1)
                 &&  fire_time(next.i,next.j) == 0
                 &&  what(next.i,next.j) != MOUNTAIN
                 &&  what(next.i,next.j) != WATER
                 &&  which_soldier(next.i,next.j) == 0) {
                     pare[next.i][next.j] = p;
+                    //cerr << p.i << ' '<<p.j<< endl;
                     Q.push(next);
+                    //cerr << next.i << ' ' << next.j << " - "<< endl;
                 }
 
                 if (next.i == obj.i && next.j == obj.j){
+                    pare[next.i][next.j] = p;
                     S = stack <Position>();
-                    while (next.i != act.i && next.j != act.j) {
+                    //cerr << S.size() << endl;
+                    //cerr << next.i << ' ' << next.j << endl;
+                    //cerr << pare[next.i][next.j].i << ' ' << pare[next.i][next.j].j << endl;
+                    while (! (next.i == act.i && next.j == act.j)) {
                         S.push(next);
+
                         next = pare[next.i][next.j];
                     }
                     return;
@@ -250,8 +255,9 @@ struct PLAYER_NAME : public Player {
     void play_soldier(int id) {
         Position act = data(id).pos;
         Position obj = (enemy_near(act) ? which_enemy(act) : which_post(act));
-        //cerr << enemy_near(act) <<"   pos i: " << act.i << " act.j: " << act.j << endl;
-        //cerr << "obj i: " << obj.i << " obj.j: " << obj.j << endl;
+        cerr << "Soldier amb id: " << id << endl;
+        cerr  <<"   pos i: " << act.i << " act.j: " << act.j << endl;
+        cerr << "obj i: " << obj.i << " obj.j: " << obj.j << endl;
 /*
         int direction = BFS(act,obj);
         if (manhattan_distance(act,obj) == 1) command_soldier(id,obj.i,obj.j);
@@ -265,8 +271,10 @@ struct PLAYER_NAME : public Player {
 */
 
         BFS_(act,obj);
-        auto x = S.top();
-        command_soldier(id,x.i,x.j);
+        cout << "arribo aqui" << round() << endl;
+        Position x = S.top();
+        cerr << x.i <<' ' << x.j << endl;
+        (manhattan_distance(act,obj) == 1 ? command_soldier(id,obj.i,obj.j) : command_soldier(id,x.i,x.j));
 
     }
 
@@ -302,7 +310,20 @@ struct PLAYER_NAME : public Player {
         command_helicopter(id, c == 1 ? COUNTER_CLOCKWISE : FORWARD2);
     }
 
-    void throw_parachuter(int id) {
+    void throw_parachuter(int helicopter_id) {
+
+      Data in = data(helicopter_id);
+      // ... and try to throw a parachuter, without even examining the land.
+      int ii = in.pos.i + random(-2, 2);
+      int jj = in.pos.j + random(-2, 2);
+      if (ii >= 0 and ii < MAX and jj >= 0 and jj < MAX)
+        if (parachuter_QuestionMark(Position(ii,jj)) throw_parachuter(helicopter_id));
+
+        if ()
+
+    }
+
+    /*void throw_parachuter(int id) {
         Position x = data(id).pos;
         for (int i = -2; i < 2; ++i)
             for (int j = -2; j < 2; ++j) {
@@ -311,7 +332,9 @@ struct PLAYER_NAME : public Player {
                 if (pos_ok(x_i,x_j) && ! data(id).parachuters.empty() && parachuter_QuestionMark(Position(x_i,x_j)))
                     command_parachuter(x_i,x_j);
             }
-    }
+    }*/
+
+
 
     /**
     * Play method, invoked once per each round.
