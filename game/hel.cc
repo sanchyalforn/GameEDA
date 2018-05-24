@@ -59,7 +59,9 @@ struct PLAYER_NAME : public Player {
     VE                  v_helicopter;
     vector <Post>       v_posts;
     VVE                 visitats;
-    stack<Position>     S;
+    stack<Position>     Sl;
+    stack<Position>     H;
+
     /*------------------
         RANDOM STUFF
     ------------------*/
@@ -96,71 +98,8 @@ struct PLAYER_NAME : public Player {
     /*----------------
         SOLDIER
     ----------------*/
-/*
-    int BFS(const Position &act, const Position &obj){
 
-        queue <pair<Position,int>> Q;
-    	Q.push({act,-1});
-    	visitats = VVE(MAX,VE(MAX,false));
-    	visitats[act.i][act.j] = true;
-        int aux = 0;
-    	while (!Q.empty()) {
-    		auto p = Q.front(); Q.pop();
-            for (int i = 0; i < 8; ++i) {
-                int dir = (p.second == -1 ? i : p.second);
-    			Position next = suma(p.first,Position(I[i],J[i]));
-                if (pos_ok(next)) {
-                    if (!visitats[next.i][next.j]) {
-                        if (what(next.i,next.j) != MOUNTAIN
-                        &&  what(next.i,next.j) != WATER
-                        &&  fire_time(next.i,next.j) == 0){
-                            Q.push({next,dir});
-                            visitats[next.i][next.j] = true;
-                        }
-                    }
-                }
-                if (next.i == obj.i && next.j == obj.j)
-                    return p.second;
-            }
-    	}
-        return -1;
-    }
-*/
-
-    void BFS_soldier (const Position &i_pos,const Position &f_pos, QP &qp, int id){
-        visitats = VVE (MAX, VE (MAX, false));
-        queue <pair <Position,queue<Position>>> q;
-        q.push({i_pos,queue<Position>()});
-        bool trobat = false;
-        visitats[i_pos.i][i_pos.j] = true;
-
-        while ( !q.empty() &&  !trobat ) {
-            pair <Position, QP > p = q.front(); q.pop();
-
-            for (int i = 0; i < 8 && !trobat; ++i) {
-                QP route = p.second;
-                Position next = suma(p.first,Position(I[i],J[i]));
-                    if (! visitats[next.i][next.j]) {
-                        if (pos_ok(next)
-                        &&  what(next.i,next.j) != MOUNTAIN
-                        &&  what(next.i,next.j) != WATER
-                        &&  fire_time(next.i,next.j) == 0
-                        &&  which_soldier(next.i,next.j) == 0) {
-                        route.push(Position(next.i,next.j));
-                        q.push({next,route});
-                        visitats[next.i][next.j] = true;
-                    }
-
-                    if (next.i == f_pos.i  && next.j == f_pos.j){
-                        qp = route;
-                        trobat = true;
-                    }
-                }
-            }
-        }
-    }
-
-    void BFS_ (const Position &act, const Position &obj) {
+    void BFS_S (const Position &act, const Position &obj) {
         VVP pare (MAX,VP(MAX,Position(-1,-1)));
         pare[act.i][act.j] = act;
         queue <Position> Q; Q.push(act);
@@ -183,12 +122,12 @@ struct PLAYER_NAME : public Player {
 
                 if (next.i == obj.i && next.j == obj.j){
                     pare[next.i][next.j] = p;
-                    S = stack <Position>();
+                    Sl = stack <Position>();
                     //cerr << S.size() << endl;
                     //cerr << next.i << ' ' << next.j << endl;
                     //cerr << pare[next.i][next.j].i << ' ' << pare[next.i][next.j].j << endl;
                     while (! (next.i == act.i && next.j == act.j)) {
-                        S.push(next);
+                        Sl.push(next);
 
                         next = pare[next.i][next.j];
                     }
@@ -216,7 +155,7 @@ struct PLAYER_NAME : public Player {
                 if (pos_ok(i,j) && which_soldier(i,j) != 0 && data(which_soldier(i,j)).player != me()) {
                     if (aux.i == -1
                     || (manhattan_distance(pos,Position(i,j)) < manhattan_distance(pos,aux)
-                /*&&  data(which_soldier(pos.i,pos.j)).life >= data(which_soldier(i,j)).life*/))
+                /*&&  data(which_soldier(pos.i,pos.j)).life >= data(which_soldier(i,j)).life)*/)
                         aux = Position(i,j);
                 }
             }
@@ -241,9 +180,9 @@ struct PLAYER_NAME : public Player {
         command_soldier(id,next.i,next.j);
 */
 
-        BFS_(act,obj);
+        BFS_S(act,obj);
         cout << "arribo aqui" << round() << endl;
-        Position x = S.top();
+        Position x = Sl.top();
         cerr << x.i <<' ' << x.j << endl;
         (manhattan_distance(act,obj) == 1 ? command_soldier(id,obj.i,obj.j) : command_soldier(id,x.i,x.j));
 
@@ -275,10 +214,44 @@ struct PLAYER_NAME : public Player {
         if (! data(id).parachuters.empty())
             throw_parachuter(id);
 
-        // With probability 20% we turn counter clockwise,
-        // otherwise we try to move forward two steps.
-        int c = random(1, 7);
-        command_helicopter(id, c == 1 ? COUNTER_CLOCKWISE : FORWARD2);
+        Position obj =  (round() > 15 ? Position(30,30) : which_post(data(id).pos));
+        BFS_H(data(id).pos,obj);
+    }
+
+    void BFS_H (const Position &act, const Position &obj) {
+        VVP pare (MAX,VP(MAX,Position(-1,-1)));
+        pare[act.i][act.j] = act;
+        queue <Position> Q; Q.push(act);
+
+        while (!Q.empty()) {
+            Position p = Q.front(); Q.pop();
+            for (int i = 0; i < 8; ++i) {
+                Position next = suma(p,Position(I[i],J[i]));
+                if (pos_ok(next)
+                &&  (pare[next.i][next.j].i == -1 or pare[next.i][next.j].j == -1)
+                &&  fire_time(next.i,next.j) == 0
+                &&  what(next.i,next.j) != MOUNTAIN) {
+                    pare[next.i][next.j] = p;
+                    //cerr << p.i << ' '<<p.j<< endl;
+                    Q.push(next);
+                    //cerr << next.i << ' ' << next.j << " - "<< endl;
+                }
+
+                if (next.i == obj.i && next.j == obj.j){
+                    pare[next.i][next.j] = p;
+                    H = stack <Position>();
+                    //cerr << H.size() << endl;
+                    //cerr << next.i << ' ' << next.j << endl;
+                    //cerr << pare[next.i][next.j].i << ' ' << pare[next.i][next.j].j << endl;
+                    while (! (next.i == act.i && next.j == act.j)) {
+                        H.push(next);
+
+                        next = pare[next.i][next.j];
+                    }
+                    return;
+                }
+            }
+        }
     }
 
     //LOOKS IF  ITS A GOOD PLACE TO THROW A PARACHUTER
@@ -322,6 +295,8 @@ struct PLAYER_NAME : public Player {
                 }
             }
     }
+
+
 
 
 

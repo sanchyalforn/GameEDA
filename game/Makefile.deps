@@ -22,5 +22,7 @@ Settings.o: Settings.cc Settings.hh Structs.hh Utils.hh Defs.hh
 State.o: State.cc State.hh Structs.hh Utils.hh Defs.hh
 Structs.o: Structs.cc Structs.hh Utils.hh Defs.hh
 Utils.o: Utils.cc Utils.hh Defs.hh
+hel.o: hel.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh Defs.hh \
+ State.hh Action.hh Random.hh Registry.hh
 stuff.o: stuff.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
  Defs.hh State.hh Action.hh Random.hh Registry.hh
