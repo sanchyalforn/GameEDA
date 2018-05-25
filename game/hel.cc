@@ -142,7 +142,7 @@ struct PLAYER_NAME : public Player {
         for (int i = pos.i - radius; i < pos.i + radius;  ++i)
             for (int j = pos.j - radius; j < pos.j + radius; ++j) {
                 if (pos_ok(i,j) && which_soldier(i,j) != 0 && data(which_soldier(i,j)).player != me())
-                    //if ( my_life >= data(which_soldier(i,j)).life)
+                    if ( my_life >= data(which_soldier(i,j)).life)
                         return true;
             }
             return false;
@@ -155,7 +155,7 @@ struct PLAYER_NAME : public Player {
                 if (pos_ok(i,j) && which_soldier(i,j) != 0 && data(which_soldier(i,j)).player != me()) {
                     if (aux.i == -1
                     || (manhattan_distance(pos,Position(i,j)) < manhattan_distance(pos,aux)
-                /*&&  data(which_soldier(pos.i,pos.j)).life >= data(which_soldier(i,j)).life)*/)
+                &&  data(which_soldier(pos.i,pos.j)).life >= data(which_soldier(i,j)).life))
                         aux = Position(i,j);
                 }
             }
@@ -295,9 +295,6 @@ struct PLAYER_NAME : public Player {
                 }
             }
     }
-
-
-
 
 
     /**
