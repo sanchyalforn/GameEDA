@@ -267,7 +267,7 @@ struct PLAYER_NAME : public Player {
     void play_helicopter(int id) {
 
         // If we can, we throw napalm.
-        if (data(id).napalm == 0) {
+        if (data(id).napalm == 0 && napalm_QuestionMark(data(id).pos)) {
             command_helicopter(id, NAPALM);
             return;
         }
@@ -277,7 +277,7 @@ struct PLAYER_NAME : public Player {
 
         // With probability 20% we turn counter clockwise,
         // otherwise we try to move forward two steps.
-        int c = random(1, 7);
+        int c = random(1, 3);
         command_helicopter(id, c == 1 ? COUNTER_CLOCKWISE : FORWARD2);
     }
 
@@ -296,17 +296,18 @@ struct PLAYER_NAME : public Player {
         int num_enemics = 0;
         int num_meus = 0;
         bool post = false;
-        for (int i = 0; i < 5; ++i)
-            for (int j = 0; j < 5; ++j) {
-                Position act = {pos.i - 2 + i,pos.j - 2 + j};
-                int data_soldier = which_soldier(act.i,act.j);
-                int owner_post = post_owner(act.i,act.j);
-                if (data_soldier <= -1) continue;
-                (data(which_soldier(act.i,act.j)).player == me() ? ++num_meus : ++num_enemics);
+        for (int i = pos.i-2; i < pos.i+2; ++i)
+            for (int j = pos.j-2; j < pos.j+2; ++j) {
+                Position act = {pos.i + i,pos.j + j};
+                if (pos_ok(act)) {
+                    int data_soldier = which_soldier(act.i,act.j);
+                    if (data_soldier > 0)
+                        (data(which_soldier(act.i,act.j)).player == me() ? ++num_meus : ++num_enemics);
+                }
             }
-        return ((num_meus < 3 && num_enemics > num_meus)
-        ||      (num_enemics  >  2*num_meus-1)
-        ||      (num_meus     < 2 && post));
+            bool b1 = (num_enemics > num_meus);
+            //bool b2 = (num_enemics  >=  2*num_meus-1);
+        return ((num_meus < 3 && b1));
     }
 
     void throw_parachuter(int helicopter_id) {

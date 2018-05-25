@@ -213,9 +213,9 @@ struct PLAYER_NAME : public Player {
 
         if (! data(id).parachuters.empty())
             throw_parachuter(id);
-
         Position obj =  (round() > 15 ? Position(30,30) : which_post(data(id).pos));
         BFS_H(data(id).pos,obj);
+        int orientation = data(id).orientation;
     }
 
     void BFS_H (const Position &act, const Position &obj) {

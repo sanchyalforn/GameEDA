@@ -1,0 +1,2 @@
+info: seed 0
+info: loading game
