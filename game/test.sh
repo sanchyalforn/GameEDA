@@ -1,14 +1,13 @@
 PLAYER="Maincra"
-NOMATCH = 100
 
 rm -rf test2.txt test3.txt
 touch test2.txt
-for k in {1..$NOMATCH}
+for k in {1..300}
 do
     number=$RANDOM
     echo $number
     r=$(($RANDOM % 4))
-    echo $r
+    echo $k
     if [ $r = 0 ]
     then
         ./Game $PLAYER Dummy Dummy Dummy -s $number -i default.cnf -o default.out 2>> test2.txt
