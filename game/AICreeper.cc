@@ -6,7 +6,7 @@
 * with the same name and .cc extension.
 */
 
-#define PLAYER_NAME Maincra
+#define PLAYER_NAME SotElCalcot
 
 
 // DISCLAIMER: The following Demo player is *not* meant to do anything
@@ -30,10 +30,10 @@ struct PLAYER_NAME : public Player {
           GLOBALS
     ------------------*/
 
-    static constexpr int I[8] = { 1, 1, 0, -1, -1, -1,  0,  1 };
-    static constexpr int J[8] = { 0, 1, 1,  1,  0, -1, -1, -1 };
-    static constexpr int HI[4] = { 1,  0, -1,  0};
-    static constexpr int HJ[4] = { 0,  1,  0, -1};
+    static constexpr int I[8]  = { 1, 1, 0, -1, -1, -1,  0,  1 };
+    static constexpr int J[8]  = { 0, 1, 1,  1,  0, -1, -1, -1 };
+    static constexpr int HI[4] = { 1,  0, -1,  0 };
+    static constexpr int HJ[4] = { 0,  1,  0, -1 };
 
     // --------------------------------------------
 /*
@@ -60,6 +60,7 @@ struct PLAYER_NAME : public Player {
     vector <Post>       v_posts;
     VVE                 visitats;
     stack<Position>     S;
+
     /*------------------
         RANDOM STUFF
     ------------------*/
@@ -96,69 +97,6 @@ struct PLAYER_NAME : public Player {
     /*----------------
         SOLDIER
     ----------------*/
-/*
-    int BFS(const Position &act, const Position &obj){
-
-        queue <pair<Position,int>> Q;
-    	Q.push({act,-1});
-    	visitats = VVE(MAX,VE(MAX,false));
-    	visitats[act.i][act.j] = true;
-        int aux = 0;
-    	while (!Q.empty()) {
-    		auto p = Q.front(); Q.pop();
-            for (int i = 0; i < 8; ++i) {
-                int dir = (p.second == -1 ? i : p.second);
-    			Position next = suma(p.first,Position(I[i],J[i]));
-                if (pos_ok(next)) {
-                    if (!visitats[next.i][next.j]) {
-                        if (what(next.i,next.j) != MOUNTAIN
-                        &&  what(next.i,next.j) != WATER
-                        &&  fire_time(next.i,next.j) == 0){
-                            Q.push({next,dir});
-                            visitats[next.i][next.j] = true;
-                        }
-                    }
-                }
-                if (next.i == obj.i && next.j == obj.j)
-                    return p.second;
-            }
-    	}
-        return -1;
-    }
-*/
-
-    void BFS_soldier (const Position &i_pos,const Position &f_pos, QP &qp, int id){
-        visitats = VVE (MAX, VE (MAX, false));
-        queue <pair <Position,queue<Position>>> q;
-        q.push({i_pos,queue<Position>()});
-        bool trobat = false;
-        visitats[i_pos.i][i_pos.j] = true;
-
-        while ( !q.empty() &&  !trobat ) {
-            pair <Position, QP > p = q.front(); q.pop();
-
-            for (int i = 0; i < 8 && !trobat; ++i) {
-                QP route = p.second;
-                Position next = suma(p.first,Position(I[i],J[i]));
-                    if (! visitats[next.i][next.j]) {
-                        if (pos_ok(next)
-                        &&  what(next.i,next.j) != MOUNTAIN
-                        &&  what(next.i,next.j) != WATER
-                        &&  fire_time(next.i,next.j) == 0
-                        &&  which_soldier(next.i,next.j) == 0) {
-                        route.push(Position(next.i,next.j));
-                        q.push({next,route});
-                        visitats[next.i][next.j] = true;
-                    }
-
-                    if (next.i == f_pos.i  && next.j == f_pos.j){
-                        qp = route;
-                        trobat = true;
-                    }
-                }
-            }
-        }
-    }
 
     void BFS_ (const Position &act, const Position &obj) {
         VVP pare (MAX,VP(MAX,Position(-1,-1)));
@@ -176,17 +114,12 @@ struct PLAYER_NAME : public Player {
                 &&  what(next.i,next.j) != WATER
                 &&  which_soldier(next.i,next.j) == 0) {
                     pare[next.i][next.j] = p;
-                    //cerr << p.i << ' '<<p.j<< endl;
                     Q.push(next);
-                    //cerr << next.i << ' ' << next.j << " - "<< endl;
                 }
 
                 if (next.i == obj.i && next.j == obj.j){
                     pare[next.i][next.j] = p;
                     S = stack <Position>();
-                    //cerr << S.size() << endl;
-                    //cerr << next.i << ' ' << next.j << endl;
-                    //cerr << pare[next.i][next.j].i << ' ' << pare[next.i][next.j].j << endl;
                     while (! (next.i == act.i && next.j == act.j)) {
                         S.push(next);
 
@@ -226,9 +159,7 @@ struct PLAYER_NAME : public Player {
     void play_soldier(int id) {
         Position act = data(id).pos;
         Position obj = (enemy_near(act) ? which_enemy(act) : which_post(act));
-        cerr << "Soldier amb id: " << id << endl;
-        cerr  <<"   pos i: " << act.i << " act.j: " << act.j << endl;
-        cerr << "obj i: " << obj.i << " obj.j: " << obj.j << endl;
+
 /*
         int direction = BFS(act,obj);
         if (manhattan_distance(act,obj) == 1) command_soldier(id,obj.i,obj.j);
@@ -242,9 +173,7 @@ struct PLAYER_NAME : public Player {
 */
 
         BFS_(act,obj);
-        cout << "arribo aqui" << round() << endl;
         Position x = S.top();
-        cerr << x.i <<' ' << x.j << endl;
         (manhattan_distance(act,obj) == 1 ? command_soldier(id,obj.i,obj.j) : command_soldier(id,x.i,x.j));
 
     }
@@ -264,6 +193,58 @@ struct PLAYER_NAME : public Player {
 
     */
 
+    bool can_move(const Position &a, const Position &b, int id) {
+        Position x = Position(b.i-a.i, b.j-a.j);
+        if (HI[0] ==  x.i && HJ[0] == x.j) return can_go_down(a,id); //DOWN
+        if (HI[1] ==  x.i && HJ[1] == x.j) return can_go_right(a,id); //RIGHT
+        if (HI[2] ==  x.i && HJ[2] == x.j) return can_go_up(a,id); //UP
+                                           return can_go_left(a,id); //LEFT
+    }
+
+    bool can_go_up(const Position &pos, int id){
+        for (int i = -4; i <= -2; ++i)
+            for (int j = -4; j <= 4; ++j){
+                int aux_i = pos.i + i;
+                int aux_j = pos.i + j;
+                Position aux = Position(aux_i,aux_j);
+                if (what(aux.i,aux.j) == MOUNTAIN || which_helicopter(aux.i,aux.j) != 0) return false;
+            }
+        return true;
+    }
+
+    bool can_go_left(const Position &pos, int id){
+        for (int i = -5; i <= 5; ++i)
+            for (int j = -3; j <= -2; ++j){
+                int aux_i = pos.i + i;
+                int aux_j = pos.i + j;
+                Position aux = Position(aux_i,aux_j);
+                if (what(aux.i,aux.j) == MOUNTAIN || which_helicopter(aux.i,aux.j) != 0) return false;
+            }
+        return true;
+    }
+
+    bool can_go_right(const Position &pos, int id){
+        for (int i = -5; i <= 5; ++i)
+            for (int j = 2; j <= 3; ++j){
+                int aux_i = pos.i + i;
+                int aux_j = pos.i + j;
+                Position aux = Position(aux_i,aux_j);
+                if (what(aux.i,aux.j) == MOUNTAIN || which_helicopter(aux.i,aux.j) != 0) return false;
+            }
+        return true;
+    }
+
+    bool can_go_down(const Position &pos, int id){
+        for (int i = 2; i <= 4; ++i)
+            for (int j = -4; j <= 4; ++j){
+                int aux_i = pos.i + i;
+                int aux_j = pos.i + j;
+                Position aux = Position(aux_i,aux_j);
+                if (what(aux.i,aux.j) == MOUNTAIN || which_helicopter(aux.i,aux.j) != 0) return false;
+            }
+        return true;
+    }
+
     void play_helicopter(int id) {
 
         // If we can, we throw napalm.
@@ -274,7 +255,6 @@ struct PLAYER_NAME : public Player {
 
         if (! data(id).parachuters.empty())
             throw_parachuter(id);
-
         // With probability 20% we turn counter clockwise,
         // otherwise we try to move forward two steps.
         int c = random(1, 3);
@@ -323,7 +303,6 @@ struct PLAYER_NAME : public Player {
                 }
             }
     }
-
 
 
     /**

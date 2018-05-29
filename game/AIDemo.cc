@@ -6,7 +6,7 @@
 * with the same name and .cc extension.
 */
 
-#define PLAYER_NAME Jejelol
+#define PLAYER_NAME PDeGAT
 
 
 // DISCLAIMER: The following Demo player is *not* meant to do anything
@@ -36,12 +36,12 @@ struct PLAYER_NAME : public Player {
     static constexpr int HJ[4] = { 0,   0,  1, -1};
 
     // --------------------------------------------
-/*
+
     const int S       = 0; //DOWN
     const int E       = 1; //RIGHT
     const int N       = 2; //UP
     const int W       = 3; //LEFT
-*/
+
     const int radius  = 2;
     const int INFINIT = 1e9;
 
@@ -165,25 +165,11 @@ struct PLAYER_NAME : public Player {
     void play_soldier(int id) {
         Position act = data(id).pos;
         Position obj = (enemy_near(act) ? which_enemy(act) : which_post(act));
-        cerr << "Soldier amb id: " << id << endl;
-        cerr  <<"   pos i: " << act.i << " act.j: " << act.j << endl;
-        cerr << "obj i: " << obj.i << " obj.j: " << obj.j << endl;
-/*
-        int direction = BFS(act,obj);
-        if (manhattan_distance(act,obj) == 1) command_soldier(id,obj.i,obj.j);
-        command_soldier(id,act.i+I[direction],act.j+J[direction]);
-*/
-/*
-        QP qp;
-        BFS_soldier(act,obj,qp,id);
-        Position next = qp.front();
-        command_soldier(id,next.i,next.j);
-*/
 
         BFS_S(act,obj);
-        cout << "arribo aqui" << round() << endl;
+        //cout << "arribo aqui" << round() << endl;
         Position x = Sl.top();
-        cerr << x.i <<' ' << x.j << endl;
+        //cerr << x.i <<' ' << x.j << endl;
         (manhattan_distance(act,obj) == 1 ? command_soldier(id,obj.i,obj.j) : command_soldier(id,x.i,x.j));
 
     }
@@ -207,7 +193,41 @@ struct PLAYER_NAME : public Player {
         if (HI[0] ==  a.i && HJ[0] == a.j) return 0; //DOWN
         if (HI[1] ==  a.i && HJ[1] == a.j) return 1; //RIGHT
         if (HI[2] ==  a.i && HJ[2] == a.j) return 2; //UP
-                                                                   return 3; //LEFT
+                                           return 3; //LEFT
+    }
+
+    void BFS_H (const Position &act, const Position &obj) {
+        VVP pare (MAX,VP(MAX,Position(-1,-1)));
+        pare[act.i][act.j] = act;
+        queue <Position> Q; Q.push(act);
+        int id = which_helicopter(act.i,act.j);
+
+        while (!Q.empty()) {
+            Position p = Q.front(); Q.pop();
+            for (int i = 0; i < 4; ++i) {
+                Position next = suma(p,Position(HI[i],HJ[i]));
+                if (pos_ok(next)
+                &&  (pare[next.i][next.j].i == -1 or pare[next.i][next.j].j == -1)
+                &&  fire_time(next.i,next.j) == 0
+                &&  what(next.i,next.j) != MOUNTAIN
+                &&  can_move(p,next,id)) {
+                    pare[next.i][next.j] = p;
+                    Q.push(next);
+                }
+                cerr << "arribo" << endl;
+                if (next.i == obj.i && next.j == obj.j){
+                    pare[next.i][next.j] = p;
+
+                    while (! (next.i == act.i && next.j == act.j)) {
+                        cerr << "he entrat i size: " << H.size() << endl;
+                        H.push(next);
+
+                        next = pare[next.i][next.j];
+                    }
+                    return;
+                }
+            }
+        }
     }
 
     void play_helicopter(int id) {
@@ -220,48 +240,107 @@ struct PLAYER_NAME : public Player {
 
         if (! data(id).parachuters.empty())
             throw_parachuter(id);
+
+
         Position obj =  (round() > 15 ? Position(30,30) : which_post(data(id).pos));
+        H = stack <Position>();
+        cerr << "peta aqui?" << endl;
         BFS_H(data(id).pos,obj);
-        int orientation = data(id).orientation;
-        Position vector_unitar = Position (H.top().i -data(id).pos.i,H.top().j - data(id).pos.j);
+        cerr << "o aqui?" << endl;
+        int ori = data(id).orientation;
+        cerr << H.size() << endl;
+        auto Hel = H.top(); H.pop();
+        cerr << "i aqui?" << endl;
+        Position vector_unitar = Position (Hel.i -data(id).pos.i,Hel.j - data(id).pos.j);
         int new_orientation = a(vector_unitar);
-    }
+        int c;
+        cerr << "position act: i: " << data(id).pos.i << " j: " << data(id).pos.j << endl;
+        cerr << "Position obj: i: "<< obj.i << " j: " << obj.j <<  endl;
+        cerr << "next step: i: " << Hel.i << " j: " << Hel.j << endl;
+        cerr << "orientation: " << ori << " new_ori: " << new_orientation << endl;
+        if (ori == new_orientation) c = FORWARD1;
+        else {
+            if (ori == N) {
+                if (new_orientation == E) c = CLOCKWISE;
+                else if (new_orientation == S) c =  random(1, 2) ? CLOCKWISE : COUNTER_CLOCKWISE;
+                else c = COUNTER_CLOCKWISE;
+            }
 
-    void BFS_H (const Position &act, const Position &obj) {
-        VVP pare (MAX,VP(MAX,Position(-1,-1)));
-        pare[act.i][act.j] = act;
-        queue <Position> Q; Q.push(act);
+            else if (ori == E) {
+                if (new_orientation == S) c = CLOCKWISE;
+                else if (new_orientation == W) c =  random(1, 2) ? CLOCKWISE : COUNTER_CLOCKWISE;
+                else c = COUNTER_CLOCKWISE;
+            }
 
-        while (!Q.empty()) {
-            Position p = Q.front(); Q.pop();
-            for (int i = 0; i < 8; ++i) {
-                Position next = suma(p,Position(I[i],J[i]));
-                if (pos_ok(next)
-                &&  (pare[next.i][next.j].i == -1 or pare[next.i][next.j].j == -1)
-                &&  fire_time(next.i,next.j) == 0
-                &&  what(next.i,next.j) != MOUNTAIN) {
-                    pare[next.i][next.j] = p;
-                    //cerr << p.i << ' '<<p.j<< endl;
-                    Q.push(next);
-                    //cerr << next.i << ' ' << next.j << " - "<< endl;
-                }
+            else if (ori == S) {
+                if (new_orientation == W) c = CLOCKWISE;
+                else if (new_orientation == N) c =  random(1, 2) ? CLOCKWISE : COUNTER_CLOCKWISE;
+                else c = COUNTER_CLOCKWISE;
+            }
 
-                if (next.i == obj.i && next.j == obj.j){
-                    pare[next.i][next.j] = p;
-                    H = stack <Position>();
-                    //cerr << H.size() << endl;
-                    //cerr << next.i << ' ' << next.j << endl;
-                    //cerr << pare[next.i][next.j].i << ' ' << pare[next.i][next.j].j << endl;
-                    while (! (next.i == act.i && next.j == act.j)) {
-                        H.push(next);
-
-                        next = pare[next.i][next.j];
-                    }
-                    return;
-                }
+            else {
+                if (new_orientation == N) c = CLOCKWISE;
+                else if (new_orientation == E) c =  random(1, 2) ? CLOCKWISE : COUNTER_CLOCKWISE;
+                else c = COUNTER_CLOCKWISE;
             }
         }
+        //cerr << "surto amb c =" << c << endl;
+        command_helicopter(id,c);
+
     }
+
+
+        bool can_move(const Position &a, const Position &b, int id) {
+            Position x = Position(b.i-a.i, b.j-a.j);
+            if (HI[0] ==  x.i && HJ[0] == x.j) return can_go_down(a,id); //DOWN
+            if (HI[1] ==  x.i && HJ[1] == x.j) return can_go_right(a,id); //RIGHT
+            if (HI[2] ==  x.i && HJ[2] == x.j) return can_go_up(a,id); //UP
+                                               return can_go_left(a,id); //LEFT
+        }
+
+        bool can_go_up(const Position &pos, int id){
+            for (int i = -4; i <= -2; ++i)
+                for (int j = -4; j <= 4; ++j){
+                    int aux_i = pos.i + i;
+                    int aux_j = pos.i + j;
+                    Position aux = Position(aux_i,aux_j);
+                    if (what(aux.i,aux.j) == MOUNTAIN || which_helicopter(aux.i,aux.j) != 0) return false;
+                }
+            return true;
+        }
+
+        bool can_go_left(const Position &pos, int id){
+            for (int i = -5; i <= 5; ++i)
+                for (int j = -3; j <= -2; ++j){
+                    int aux_i = pos.i + i;
+                    int aux_j = pos.i + j;
+                    Position aux = Position(aux_i,aux_j);
+                    if (what(aux.i,aux.j) == MOUNTAIN || which_helicopter(aux.i,aux.j) != 0) return false;
+                }
+            return true;
+        }
+
+        bool can_go_right(const Position &pos, int id){
+            for (int i = -5; i <= 5; ++i)
+                for (int j = 2; j <= 3; ++j){
+                    int aux_i = pos.i + i;
+                    int aux_j = pos.i + j;
+                    Position aux = Position(aux_i,aux_j);
+                    if (what(aux.i,aux.j) == MOUNTAIN || which_helicopter(aux.i,aux.j) != 0) return false;
+                }
+            return true;
+        }
+
+        bool can_go_down(const Position &pos, int id){
+            for (int i = 2; i <= 4; ++i)
+                for (int j = -4; j <= 4; ++j){
+                    int aux_i = pos.i + i;
+                    int aux_j = pos.i + j;
+                    Position aux = Position(aux_i,aux_j);
+                    if (what(aux.i,aux.j) == MOUNTAIN || which_helicopter(aux.i,aux.j) != 0) return false;
+                }
+            return true;
+        }
 
     //LOOKS IF  ITS A GOOD PLACE TO THROW A PARACHUTER
     bool parachuter_QuestionMark(const Position &p) {

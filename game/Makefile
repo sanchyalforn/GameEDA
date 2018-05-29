@@ -7,7 +7,7 @@ DUMMY_OBJ = AIDummy.o.Linux64
 #DUMMY_OBJ = AIDummy.o.macOS
 
 # Add here any extra .o player files you want to link to the executable
-EXTRA_OBJ =
+EXTRA_OBJ = AIKavod.o AIPuigdeBot.o
 
 # Configuration
 OPTIMIZE = 2 # Optimization level    (0 to 3)
