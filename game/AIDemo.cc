@@ -6,7 +6,8 @@
 * with the same name and .cc extension.
 */
 
-#define PLAYER_NAME PDeGAT
+#define PLAYER_NAME GRAPO_Sanchyy
+
 
 
 // DISCLAIMER: The following Demo player is *not* meant to do anything
@@ -32,8 +33,8 @@ struct PLAYER_NAME : public Player {
 
     static constexpr int I[8] =  { 1, 1, 0, -1, -1, -1,  0,  1 };
     static constexpr int J[8] =  { 0, 1, 1,  1,  0, -1, -1, -1 };
-    static constexpr int HI[4] = { 1,  -1,  0,  0};
-    static constexpr int HJ[4] = { 0,   0,  1, -1};
+    static constexpr int HI[4] = { 1, 0, -1,  0};
+    static constexpr int HJ[4] = { 0, 1,  0, -1};
 
     // --------------------------------------------
 
@@ -65,6 +66,11 @@ struct PLAYER_NAME : public Player {
     /*------------------
         RANDOM STUFF
     ------------------*/
+
+
+    Position pos_sub(const Position &a, const Position &b) {
+        return {b.i - a.i, b.j - a.j};
+    }
 
     int manhattan_distance(const Position &p1, const Position &p2) {
         return abs(p1.i - p2.i) + abs(p1.j - p2.j);
@@ -189,7 +195,7 @@ struct PLAYER_NAME : public Player {
 
     */
 
-    int a(const Position &a) {
+    int WHERE(const Position &a) {
         if (HI[0] ==  a.i && HJ[0] == a.j) return 0; //DOWN
         if (HI[1] ==  a.i && HJ[1] == a.j) return 1; //RIGHT
         if (HI[2] ==  a.i && HJ[2] == a.j) return 2; //UP
@@ -206,22 +212,22 @@ struct PLAYER_NAME : public Player {
             Position p = Q.front(); Q.pop();
             for (int i = 0; i < 4; ++i) {
                 Position next = suma(p,Position(HI[i],HJ[i]));
+                //cerr << "peta aqui¿" << endl;
                 if (pos_ok(next)
-                &&  (pare[next.i][next.j].i == -1 or pare[next.i][next.j].j == -1)
-                &&  fire_time(next.i,next.j) == 0
+                &&  (pare[next.i][next.j].i < 0 || pare[next.i][next.j].j < 0)
                 &&  what(next.i,next.j) != MOUNTAIN
-                &&  can_move(p,next,id)) {
+            /*&&  can_move(p,next,id)*/) {
                     pare[next.i][next.j] = p;
                     Q.push(next);
                 }
-                cerr << "arribo" << endl;
+                //cerr << "soc a: i: " <<  p.i << " j: " << p.j << endl;
+                //cerr << "vaig a: i: " << next.i << " j: " << next.j << endl;
                 if (next.i == obj.i && next.j == obj.j){
                     pare[next.i][next.j] = p;
-
+                    cerr << "he entrat" << endl;
                     while (! (next.i == act.i && next.j == act.j)) {
                         cerr << "he entrat i size: " << H.size() << endl;
                         H.push(next);
-
                         next = pare[next.i][next.j];
                     }
                     return;
@@ -242,62 +248,66 @@ struct PLAYER_NAME : public Player {
             throw_parachuter(id);
 
 
-        Position obj =  (round() > 15 ? Position(30,30) : which_post(data(id).pos));
+        Position obj =  (round() > 10 ? Position(30,30) : which_post(data(id).pos));
         H = stack <Position>();
-        cerr << "peta aqui?" << endl;
+        //cerr << "peta aqui?" << endl;
         BFS_H(data(id).pos,obj);
-        cerr << "o aqui?" << endl;
+        //cerr << "o aqui?" << endl;
         int ori = data(id).orientation;
-        cerr << H.size() << endl;
+        //cerr << H.size() << endl;
+
         auto Hel = H.top(); H.pop();
         cerr << "i aqui?" << endl;
-        Position vector_unitar = Position (Hel.i -data(id).pos.i,Hel.j - data(id).pos.j);
-        int new_orientation = a(vector_unitar);
+        Position vector_unitar = pos_sub(data(id).pos,Hel);
+        int new_orientation = WHERE(vector_unitar);
         int c;
-        cerr << "position act: i: " << data(id).pos.i << " j: " << data(id).pos.j << endl;
-        cerr << "Position obj: i: "<< obj.i << " j: " << obj.j <<  endl;
-        cerr << "next step: i: " << Hel.i << " j: " << Hel.j << endl;
-        cerr << "orientation: " << ori << " new_ori: " << new_orientation << endl;
-        if (ori == new_orientation) c = FORWARD1;
-        else {
-            if (ori == N) {
-                if (new_orientation == E) c = CLOCKWISE;
-                else if (new_orientation == S) c =  random(1, 2) ? CLOCKWISE : COUNTER_CLOCKWISE;
-                else c = COUNTER_CLOCKWISE;
-            }
 
-            else if (ori == E) {
-                if (new_orientation == S) c = CLOCKWISE;
-                else if (new_orientation == W) c =  random(1, 2) ? CLOCKWISE : COUNTER_CLOCKWISE;
-                else c = COUNTER_CLOCKWISE;
-            }
-
-            else if (ori == S) {
-                if (new_orientation == W) c = CLOCKWISE;
-                else if (new_orientation == N) c =  random(1, 2) ? CLOCKWISE : COUNTER_CLOCKWISE;
-                else c = COUNTER_CLOCKWISE;
-            }
-
+        if (H.size() != 0) {
+            if (ori == new_orientation) c = FORWARD2;
             else {
-                if (new_orientation == N) c = CLOCKWISE;
-                else if (new_orientation == E) c =  random(1, 2) ? CLOCKWISE : COUNTER_CLOCKWISE;
-                else c = COUNTER_CLOCKWISE;
+                if (ori == N) {
+                    if (new_orientation == E) c = CLOCKWISE;
+                    else if (new_orientation == S) c =  random(1, 2) ? CLOCKWISE : COUNTER_CLOCKWISE;
+                    else c = COUNTER_CLOCKWISE;
+                }
+
+                else if (ori == E) {
+                    if (new_orientation == S) c = CLOCKWISE;
+                    else if (new_orientation == W) c =  random(1, 2) ? CLOCKWISE : COUNTER_CLOCKWISE;
+                    else c = COUNTER_CLOCKWISE;
+                }
+
+                else if (ori == S) {
+                    if (new_orientation == W) c = CLOCKWISE;
+                    else if (new_orientation == N) c =  random(1, 2) ? CLOCKWISE : COUNTER_CLOCKWISE;
+                    else c = COUNTER_CLOCKWISE;
+                }
+
+                else {
+                    if (new_orientation == N) c = CLOCKWISE;
+                    else if (new_orientation == E) c =  random(1, 2) ? CLOCKWISE : COUNTER_CLOCKWISE;
+                    else c = COUNTER_CLOCKWISE;
+                }
             }
+            command_helicopter(id,c);
         }
+        else
+            command_helicopter(id,COUNTER_CLOCKWISE);
+
         //cerr << "surto amb c =" << c << endl;
-        command_helicopter(id,c);
+
 
     }
 
-
+        //DEPENDING ON ITS ORIENTATION, CAN I GO XX?
         bool can_move(const Position &a, const Position &b, int id) {
             Position x = Position(b.i-a.i, b.j-a.j);
             if (HI[0] ==  x.i && HJ[0] == x.j) return can_go_down(a,id); //DOWN
-            if (HI[1] ==  x.i && HJ[1] == x.j) return can_go_right(a,id); //RIGHT
-            if (HI[2] ==  x.i && HJ[2] == x.j) return can_go_up(a,id); //UP
+            if (HI[1] ==  x.i && HJ[1] == x.j) return can_go_up(a,id); //RIGHT
+            if (HI[2] ==  x.i && HJ[2] == x.j) return can_go_right(a,id); //UP
                                                return can_go_left(a,id); //LEFT
         }
-
+        //CAN I GO UP?
         bool can_go_up(const Position &pos, int id){
             for (int i = -4; i <= -2; ++i)
                 for (int j = -4; j <= 4; ++j){
@@ -308,7 +318,7 @@ struct PLAYER_NAME : public Player {
                 }
             return true;
         }
-
+        //CAN I GO LEFT?
         bool can_go_left(const Position &pos, int id){
             for (int i = -5; i <= 5; ++i)
                 for (int j = -3; j <= -2; ++j){
@@ -319,7 +329,7 @@ struct PLAYER_NAME : public Player {
                 }
             return true;
         }
-
+        //CAN I GO RIGHT?
         bool can_go_right(const Position &pos, int id){
             for (int i = -5; i <= 5; ++i)
                 for (int j = 2; j <= 3; ++j){
@@ -331,6 +341,7 @@ struct PLAYER_NAME : public Player {
             return true;
         }
 
+        //CAN I GO DOWN?
         bool can_go_down(const Position &pos, int id){
             for (int i = 2; i <= 4; ++i)
                 for (int j = -4; j <= 4; ++j){
@@ -384,7 +395,6 @@ struct PLAYER_NAME : public Player {
             }
     }
 
-
     /**
     * Play method, invoked once per each round.
     */
@@ -393,12 +403,11 @@ struct PLAYER_NAME : public Player {
         v_soldier    = soldiers(player);
         v_helicopter = helicopters(player);
 
-
         for (int i = 0; i < (int)v_soldier.size(); ++i)
             play_soldier(v_soldier[i]);
+
         for (int i = 0; i < (int)v_helicopter.size(); ++i)
             play_helicopter(v_helicopter[i]);
-
 
     }
 
