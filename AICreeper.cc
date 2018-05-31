@@ -60,6 +60,7 @@ struct PLAYER_NAME : public Player {
     vector <Post>       v_posts;
     VVE                 visitats;
     stack<Position>     S;
+  
     /*------------------
         RANDOM STUFF
     ------------------*/
@@ -93,10 +94,13 @@ struct PLAYER_NAME : public Player {
         return aux;
     }
 
+
     /*----------------
         SOLDIER
     ----------------*/
 /*
+    //BFS THAT RETURNS NEXT DIRECTION
+
     int BFS(const Position &act, const Position &obj){
 
         queue <pair<Position,int>> Q;
@@ -125,7 +129,8 @@ struct PLAYER_NAME : public Player {
     	}
         return -1;
     }
-*/
+
+    //NON EFFICIENT BFS TAHT WORKS CORRECTLY XD
 
     void BFS_soldier (const Position &i_pos,const Position &f_pos, QP &qp, int id){
         visitats = VVE (MAX, VE (MAX, false));
@@ -159,7 +164,7 @@ struct PLAYER_NAME : public Player {
             }
         }
     }
-
+*/
     void BFS_ (const Position &act, const Position &obj) {
         VVP pare (MAX,VP(MAX,Position(-1,-1)));
         pare[act.i][act.j] = act;
@@ -192,7 +197,8 @@ struct PLAYER_NAME : public Player {
             }
         }
     }
-
+    
+    //IS THERE AN ENEMY IN A RADIUS 'RADIUS'
     bool enemy_near (const Position &pos) {
         int my_life = data(which_soldier(pos.i,pos.j)).life;
         for (int i = pos.i - radius; i < pos.i + radius;  ++i)
@@ -204,6 +210,7 @@ struct PLAYER_NAME : public Player {
             return false;
     }
 
+    //IN THE CASE THERE'S AN ENEMY, WHICH I SHOULD ATTACK
     Position which_enemy(const Position &pos) {
         Position aux = Position(-1,-1);
         for (int i = pos.i - radius; i < pos.i + radius;  ++i)
@@ -217,22 +224,11 @@ struct PLAYER_NAME : public Player {
             }
             return aux;
     }
-
+    
+    //SOLDIER BRAIN
     void play_soldier(int id) {
         Position act = data(id).pos;
         Position obj = (enemy_near(act) ? which_enemy(act) : which_post(act));
-
-/*
-        int direction = BFS(act,obj);
-        if (manhattan_distance(act,obj) == 1) command_soldier(id,obj.i,obj.j);
-        command_soldier(id,act.i+I[direction],act.j+J[direction]);
-*/
-/*
-        QP qp;
-        BFS_soldier(act,obj,qp,id);
-        Position next = qp.front();
-        command_soldier(id,next.i,next.j);
-*/
 
         BFS_(act,obj);
         Position x = S.top();
@@ -255,6 +251,7 @@ struct PLAYER_NAME : public Player {
 
     */
 
+    //HELICOPTER BRAIN
     void play_helicopter(int id) {
 
         // If we can, we throw napalm.
@@ -266,8 +263,8 @@ struct PLAYER_NAME : public Player {
         if (! data(id).parachuters.empty())
             throw_parachuter(id);
 
-        // With probability 20% we turn counter clockwise,
-        // otherwise we try to move forward two steps.
+
+        //TOOK THE DEMO HELICOPTER FUNCTIONALITY.
         int c = random(1, 7);
         command_helicopter(id, c == 1 ? COUNTER_CLOCKWISE : FORWARD2);
     }
