@@ -1,4 +1,4 @@
-//////// STUDENTS DO NOT NEED TO READ BELOW THIS LINE ////////
+//////// STUDENTS DO NOT NEED TO READ BELOW THIS LINE ////////  
 
 #ifndef Info_hh
 #define Info_hh
@@ -18,14 +18,14 @@
  * except the names of the vectors and the random generator of the board.
  */
 class Info : public Settings, public State {
-
+  
   friend class Game;
   friend class SecGame;
 
 public:
 
   static const char code[5];
-
+  
   /**
    * Reads the grid of the board.
    * Should fill the same data structures as a board generator.
@@ -43,7 +43,7 @@ public:
     is >> s; // Read 2nd line of column labels.
     _my_assert(s == "012345678901234567890123456789012345678901234567890123456789",
                "expected 2nd line of column labels");
-
+    
     land = vector<vector<int>>(MAX, vector<int>(MAX));
 
     for (int i = 0; i < MAX; ++i) {
@@ -64,7 +64,7 @@ public:
     owner = vector<vector<int>>(MAX, vector<int>(MAX, -2));
     value = vector<vector<int>>(MAX, vector<int>(MAX, -2));
     post  = vector<Post>(NUM_POSTS);
-
+    
     is >> s; _my_assert(s == "posts",  "read " + s + " instead of posts" );
     is >> s; _my_assert(s == "player", "read " + s + " instead of player");
     is >> s; _my_assert(s == "i",      "read " + s + " instead of i"     );

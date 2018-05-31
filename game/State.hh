@@ -91,7 +91,7 @@ public:
   double status(int pl) const;
 
 
-  //////// STUDENTS DO NOT NEED TO READ BELOW THIS LINE ////////
+  //////// STUDENTS DO NOT NEED TO READ BELOW THIS LINE ////////  
 
 private:
 
@@ -106,7 +106,7 @@ private:
   vector<vector<int>>          value; // value of post at (i, j): -2 -> none, otherwise LOW_VALUE or HIGH_VALUE
   vector<Post>                  post; // information of all posts
 
-
+  
   vector<vector<int>>            sky; // sky cells that are currently occupied (0 free, 1 occupied)
   vector<vector<int>>           fire; // rounds that the fire at (i, j) will last: 0 -> there is none
   vector<vector<vector<int>>>   iden; // who is at (level, i, j): 0 -> nobody

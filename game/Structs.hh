@@ -3,7 +3,7 @@
 
 #include "Utils.hh"
 
-/**
+/** 
  * Contains the definition of some constants,
  * the Position struct,
  * the Post struct,
@@ -58,7 +58,7 @@ struct Post {
 
   // Uninitialized post.
   Post() { }
-
+  
   // Post of the given player at (i, j) with value v.
   Post(int player, int i, int j, int v) : player(player), pos(Position(i, j)), value(v) { }
 
